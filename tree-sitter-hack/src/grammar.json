@@ -1,0 +1,362 @@
+{
+  "name": "hack",
+  "rules": {
+    "source_file": {
+      "type": "REPEAT",
+      "content": {
+        "type": "SYMBOL",
+        "name": "mnemonic"
+      }
+    },
+    "comment": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "//"
+          },
+          {
+            "type": "PATTERN",
+            "value": ".*"
+          }
+        ]
+      }
+    },
+    "ws": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "\\s+"
+      }
+    },
+    "mnemonic": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "inst"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "label"
+        }
+      ]
+    },
+    "label": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ident"
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        }
+      ]
+    },
+    "inst": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "ainst"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "cinst"
+        }
+      ]
+    },
+    "ainst": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "value"
+        }
+      ]
+    },
+    "cinst": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "dest"
+                },
+                {
+                  "type": "STRING",
+                  "value": "="
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "comp"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": ";"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "jump"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "dest": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "M"
+        },
+        {
+          "type": "STRING",
+          "value": "D"
+        },
+        {
+          "type": "STRING",
+          "value": "MD"
+        },
+        {
+          "type": "STRING",
+          "value": "A"
+        },
+        {
+          "type": "STRING",
+          "value": "AM"
+        },
+        {
+          "type": "STRING",
+          "value": "AD"
+        },
+        {
+          "type": "STRING",
+          "value": "AMD"
+        }
+      ]
+    },
+    "comp": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "0"
+        },
+        {
+          "type": "STRING",
+          "value": "1"
+        },
+        {
+          "type": "STRING",
+          "value": "-1"
+        },
+        {
+          "type": "STRING",
+          "value": "D"
+        },
+        {
+          "type": "STRING",
+          "value": "A"
+        },
+        {
+          "type": "STRING",
+          "value": "!D"
+        },
+        {
+          "type": "STRING",
+          "value": "!A"
+        },
+        {
+          "type": "STRING",
+          "value": "-D"
+        },
+        {
+          "type": "STRING",
+          "value": "-A"
+        },
+        {
+          "type": "STRING",
+          "value": "D+1"
+        },
+        {
+          "type": "STRING",
+          "value": "A+1"
+        },
+        {
+          "type": "STRING",
+          "value": "D-1"
+        },
+        {
+          "type": "STRING",
+          "value": "A-1"
+        },
+        {
+          "type": "STRING",
+          "value": "D+A"
+        },
+        {
+          "type": "STRING",
+          "value": "D-A"
+        },
+        {
+          "type": "STRING",
+          "value": "A-D"
+        },
+        {
+          "type": "STRING",
+          "value": "D&A"
+        },
+        {
+          "type": "STRING",
+          "value": "D|A"
+        },
+        {
+          "type": "STRING",
+          "value": "M"
+        },
+        {
+          "type": "STRING",
+          "value": "!M"
+        },
+        {
+          "type": "STRING",
+          "value": "-M"
+        },
+        {
+          "type": "STRING",
+          "value": "M+1"
+        },
+        {
+          "type": "STRING",
+          "value": "M-1"
+        },
+        {
+          "type": "STRING",
+          "value": "D+M"
+        },
+        {
+          "type": "STRING",
+          "value": "D-M"
+        },
+        {
+          "type": "STRING",
+          "value": "M-D"
+        },
+        {
+          "type": "STRING",
+          "value": "D&M"
+        },
+        {
+          "type": "STRING",
+          "value": "D|M"
+        }
+      ]
+    },
+    "jump": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "JGT"
+        },
+        {
+          "type": "STRING",
+          "value": "JEQ"
+        },
+        {
+          "type": "STRING",
+          "value": "JGE"
+        },
+        {
+          "type": "STRING",
+          "value": "JLT"
+        },
+        {
+          "type": "STRING",
+          "value": "JNE"
+        },
+        {
+          "type": "STRING",
+          "value": "JLE"
+        },
+        {
+          "type": "STRING",
+          "value": "JMP"
+        }
+      ]
+    },
+    "value": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "ident"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "num"
+        }
+      ]
+    },
+    "ident": {
+      "type": "PATTERN",
+      "value": "[$._a-zA-Z][$._a-zA-Z0-9]*"
+    },
+    "num": {
+      "type": "PATTERN",
+      "value": "\\d+"
+    }
+  },
+  "extras": [
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "ws"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": []
+}
+

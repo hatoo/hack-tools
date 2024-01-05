@@ -1,0 +1,2 @@
+[workspace]
+members = ["hack-tools", "tree-sitter-hack"]
