@@ -1,46 +1,63 @@
 use clap::Parser;
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, fs, io::Read, path::PathBuf};
 use tree_sitter::{Node, Query, QueryCursor};
 
 #[derive(clap::Parser)]
 struct Opt {
-    input: PathBuf,
+    #[clap(subcommand)]
+    subcommand: Subcommands,
+}
+
+#[derive(clap::Subcommand)]
+enum Subcommands {
+    #[clap(alias = "asm", about = "Hack assembly to binary")]
+    As { input: Option<PathBuf> },
 }
 
 fn main() {
     let opt = Opt::parse();
 
-    let code = std::fs::read_to_string(opt.input).unwrap();
+    match opt.subcommand {
+        Subcommands::As { input } => {
+            let code = if let Some(path) = input {
+                fs::read_to_string(path).unwrap()
+            } else {
+                let mut code = String::new();
+                std::io::stdin().read_to_string(&mut code).unwrap();
+                code
+            };
 
-    let mut parser = tree_sitter::Parser::new();
-    parser.set_language(tree_sitter_hack::language()).unwrap();
+            let mut parser = tree_sitter::Parser::new();
+            parser.set_language(tree_sitter_hack::language()).unwrap();
 
-    let tree = parser.parse(&code, None).unwrap();
+            let tree = parser.parse(&code, None).unwrap();
 
-    let mut has_error = false;
-    let query = Query::new(tree_sitter_hack::language(), "(ERROR) @error").unwrap();
-    let mut query_cursor = QueryCursor::new();
-    for m in query_cursor.matches(&query, tree.root_node(), code.as_bytes()) {
-        has_error = true;
-        let node = m.captures[0].node;
-        let start = node.start_position();
-        let end = node.end_position();
-        eprintln!(
-            "parse error: {}:{}:{}: {}",
-            start.row + 1,
-            start.column + 1,
-            end.column + 1,
-            node.utf8_text(code.as_bytes()).unwrap()
-        );
-    }
-    if has_error {
-        std::process::exit(1);
-    }
+            let mut has_error = false;
+            let query = Query::new(tree_sitter_hack::language(), "(ERROR) @error").unwrap();
+            let mut query_cursor = QueryCursor::new();
+            for m in query_cursor.matches(&query, tree.root_node(), code.as_bytes()) {
+                has_error = true;
+                let node = m.captures[0].node;
+                let start = node.start_position();
+                let end = node.end_position();
+                eprintln!(
+                    "parse error: {}:{}:{}: {}",
+                    start.row + 1,
+                    start.column + 1,
+                    end.column + 1,
+                    node.utf8_text(code.as_bytes()).unwrap()
+                );
+            }
+            if has_error {
+                std::process::exit(1);
+            }
 
-    let mut table = label_table(tree.root_node(), &code);
+            let mut table = label_table(tree.root_node(), &code);
 
-    for opcode in decode(tree.root_node(), &code, &mut table) {
-        println!("{:016b}", opcode);
+            for opcode in decode(tree.root_node(), &code, &mut table) {
+                println!("{:016b}", opcode);
+            }
+        }
     }
 }
 
