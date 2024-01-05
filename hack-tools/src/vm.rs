@@ -81,6 +81,14 @@ pub fn run_vm_transpile(code: &str) {
                                     };
                                     format!("@{}\nD=A\n{}\nA=D+M\nD=M", index, at)
                                 }
+                                "pointer" => {
+                                    let index = match index {
+                                        0 => "@THIS",
+                                        1 => "@THAT",
+                                        _ => unreachable!(),
+                                    };
+                                    format!("{}\nD=M", index)
+                                }
                                 "constant" => format!("@{}\nD=A", index),
                                 "temp" => {
                                     let index = index + 5;
@@ -102,6 +110,14 @@ pub fn run_vm_transpile(code: &str) {
                                     };
 
                                     format!("{}\nD=M\n@{}\nD=D+A\n@R13\nM=D", at, index)
+                                }
+                                "pointer" => {
+                                    let index = match index {
+                                        0 => "@THIS",
+                                        1 => "@THAT",
+                                        _ => unreachable!(),
+                                    };
+                                    format!("{}\nD=A\n@R13\nM=D", index)
                                 }
                                 "temp" => {
                                     let index = index + 5;
