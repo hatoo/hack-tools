@@ -40,6 +40,21 @@ pub fn run_vm_transpile(code: &str) {
     let mut stdout = std::io::stdout();
 
     // writeln!(stdout, "@256\nD=A\n@SP\nM=D").unwrap();
+    let mut static_table = std::collections::HashMap::new();
+
+    let mut static_addr = move |index: u16| -> u16 {
+        let size = static_table.len();
+        *static_table
+            .entry(index)
+            .or_insert_with(move || 16 + size as u16)
+    };
+
+    let mut label_counter = 0;
+    let mut label = move || -> String {
+        let l = format!("LABEL_{}", label_counter);
+        label_counter += 1;
+        l
+    };
 
     loop {
         let node = walker.node();
@@ -94,6 +109,10 @@ pub fn run_vm_transpile(code: &str) {
                                     let index = index + 5;
                                     format!("@{}\nD=M", index)
                                 }
+                                "static" => {
+                                    let addr = static_addr(index);
+                                    format!("@{}\nD=M", addr)
+                                }
                                 _ => todo!(),
                             };
                             writeln!(stdout, "{}\n@SP\nM=M+1\nA=M-1\nM=D", set_d).unwrap();
@@ -123,6 +142,10 @@ pub fn run_vm_transpile(code: &str) {
                                     let index = index + 5;
                                     format!("@{}\nD=A\n@R13\nM=D", index)
                                 }
+                                "static" => {
+                                    let addr = static_addr(index);
+                                    format!("@{}\nD=A\n@R13\nM=D", addr)
+                                }
                                 _ => todo!(),
                             };
                             writeln!(stdout, "{}\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D", set_r13)
@@ -145,7 +168,38 @@ pub fn run_vm_transpile(code: &str) {
                             };
                             writeln!(stdout, "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nM=M{}D", op).unwrap();
                         }
-                        _ => todo!(),
+                        "neg" | "not" => {
+                            let op = match op {
+                                "neg" => "-",
+                                "not" => "!",
+                                _ => unreachable!(),
+                            };
+                            writeln!(stdout, "@SP\nA=M-1\nM={}M", op).unwrap();
+                        }
+                        "eq" | "gt" | "lt" => {
+                            let op = match op {
+                                "eq" => "JEQ",
+                                "gt" => "JGT",
+                                "lt" => "JLT",
+                                _ => unreachable!(),
+                            };
+                            let label_true = label();
+                            let label_end = label();
+                            writeln!(
+                                stdout,
+                                "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nD=M-D\n@{}\nD;{}",
+                                label_true, op
+                            )
+                            .unwrap();
+                            writeln!(stdout, "@SP\nA=M-1\nM=0\n@{}\n0;JMP", label_end).unwrap();
+                            writeln!(
+                                stdout,
+                                "({})\n@SP\nA=M-1\nM=-1\n({})",
+                                label_true, label_end
+                            )
+                            .unwrap();
+                        }
+                        op => todo!("{}", op),
                     }
                 }
                 _ => unreachable!(),
