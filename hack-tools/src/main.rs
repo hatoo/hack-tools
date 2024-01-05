@@ -28,12 +28,14 @@ fn main() {
             };
 
             let mut parser = tree_sitter::Parser::new();
-            parser.set_language(tree_sitter_hack::language()).unwrap();
+            parser
+                .set_language(tree_sitter_hack_asm::language())
+                .unwrap();
 
             let tree = parser.parse(&code, None).unwrap();
 
             let mut has_error = false;
-            let query = Query::new(tree_sitter_hack::language(), "(ERROR) @error").unwrap();
+            let query = Query::new(tree_sitter_hack_asm::language(), "(ERROR) @error").unwrap();
             let mut query_cursor = QueryCursor::new();
             for m in query_cursor.matches(&query, tree.root_node(), code.as_bytes()) {
                 has_error = true;
@@ -127,7 +129,11 @@ fn label_table(root: Node, code: &str) -> HashMap<String, u16> {
 
 fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> {
     fn find<'tree>(node: Node<'tree>, kind: &str, code: &str) -> Option<Node<'tree>> {
-        let query = Query::new(tree_sitter_hack::language(), &format!("({}) @cap", kind)).unwrap();
+        let query = Query::new(
+            tree_sitter_hack_asm::language(),
+            &format!("({}) @cap", kind),
+        )
+        .unwrap();
         let mut query_cursor = QueryCursor::new();
         query_cursor
             .matches(&query, node, code.as_bytes())

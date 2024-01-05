@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "tree_sitter_hack_binding",
+      "target_name": "tree_sitter_hack_asm_binding",
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
         "src"

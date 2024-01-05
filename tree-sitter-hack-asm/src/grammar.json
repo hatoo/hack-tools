@@ -1,5 +1,5 @@
 {
-  "name": "hack",
+  "name": "hack_asm",
   "rules": {
     "source_file": {
       "type": "REPEAT",

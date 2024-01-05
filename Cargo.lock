@@ -120,7 +120,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "tree-sitter",
- "tree-sitter-hack",
+ "tree-sitter-hack-asm",
 ]
 
 [[package]]
@@ -216,7 +216,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tree-sitter-hack"
+name = "tree-sitter-hack-asm"
 version = "0.0.1"
 dependencies = [
  "cc",

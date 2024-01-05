@@ -1,5 +1,5 @@
 module.exports = grammar({
-    name: 'hack',
+    name: 'hack_asm',
 
     extras: ($) => [
         $.comment,
