@@ -15,8 +15,8 @@ module.exports = grammar({
         ws: ($) => token(/\s+/),
 
         stack_op: ($) => choice(
-            seq("push", $.segment, $.num),
-            seq("pop", $.segment, $.num)
+            seq(field("action", "push"), field("segment", $.segment), field("index", $.num)),
+            seq(field("action", "pop"), field("segment", $.segment), field("index", $.num))
         ),
 
         arithmetic_op: ($) => choice(

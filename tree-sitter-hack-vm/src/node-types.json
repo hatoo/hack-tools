@@ -46,20 +46,41 @@
   {
     "type": "stack_op",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "num",
-          "named": true
-        },
-        {
-          "type": "segment",
-          "named": true
-        }
-      ]
+    "fields": {
+      "action": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pop",
+            "named": false
+          },
+          {
+            "type": "push",
+            "named": false
+          }
+        ]
+      },
+      "index": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "num",
+            "named": true
+          }
+        ]
+      },
+      "segment": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "segment",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
