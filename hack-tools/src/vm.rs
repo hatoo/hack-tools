@@ -39,15 +39,7 @@ pub fn run_vm_transpile(code: &str) {
 
     let mut stdout = std::io::stdout();
 
-    // writeln!(stdout, "@256\nD=A\n@SP\nM=D").unwrap();
-    let mut static_table = std::collections::HashMap::new();
-
-    let mut static_addr = move |index: u16| -> u16 {
-        let size = static_table.len();
-        *static_table
-            .entry(index)
-            .or_insert_with(move || 16 + size as u16)
-    };
+    let class_name = "Undefined";
 
     let mut label_counter = 0;
     let mut label = move || -> String {
@@ -110,8 +102,7 @@ pub fn run_vm_transpile(code: &str) {
                                     format!("@{}\nD=M", index)
                                 }
                                 "static" => {
-                                    let addr = static_addr(index);
-                                    format!("@{}\nD=M", addr)
+                                    format!("@{}.{}\nD=M", class_name, index)
                                 }
                                 _ => todo!(),
                             };
@@ -143,8 +134,7 @@ pub fn run_vm_transpile(code: &str) {
                                     format!("@{}\nD=A\n@R13\nM=D", index)
                                 }
                                 "static" => {
-                                    let addr = static_addr(index);
-                                    format!("@{}\nD=A\n@R13\nM=D", addr)
+                                    format!("@{}.{}\nD=A\n@R13\nM=D", class_name, index)
                                 }
                                 _ => todo!(),
                             };
