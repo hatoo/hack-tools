@@ -1,8 +1,8 @@
-use std::io::Write;
+use std::fmt::Write;
 
 use tree_sitter::{Query, QueryCursor};
 
-pub fn run_vm_transpile(code: &str) {
+pub fn run_vm_transpile(class_name: &str, code: &str) -> String {
     let mut parser = tree_sitter::Parser::new();
     parser
         .set_language(tree_sitter_hack_vm::language())
@@ -34,12 +34,10 @@ pub fn run_vm_transpile(code: &str) {
     let mut walker = root.walk();
 
     if !walker.goto_first_child() {
-        return;
+        return String::new();
     }
 
-    let mut stdout = std::io::stdout();
-
-    let class_name = "Undefined";
+    let mut out = String::new();
 
     let mut label_counter = 0;
     let mut label = move || -> String {
@@ -54,7 +52,7 @@ pub fn run_vm_transpile(code: &str) {
         if node.kind() == "command" {
             let node = node.child(0).unwrap();
 
-            writeln!(stdout, "// {}", node.utf8_text(code.as_bytes()).unwrap()).unwrap();
+            writeln!(out, "// {}", node.utf8_text(code.as_bytes()).unwrap()).unwrap();
             match node.kind() {
                 "stack_op" => {
                     let action = node
@@ -106,7 +104,7 @@ pub fn run_vm_transpile(code: &str) {
                                 }
                                 _ => todo!(),
                             };
-                            writeln!(stdout, "{}\n@SP\nM=M+1\nA=M-1\nM=D", set_d).unwrap();
+                            writeln!(out, "{}\n@SP\nM=M+1\nA=M-1\nM=D", set_d).unwrap();
                         }
                         "pop" => {
                             let set_r13 = match segment {
@@ -138,7 +136,7 @@ pub fn run_vm_transpile(code: &str) {
                                 }
                                 _ => todo!(),
                             };
-                            writeln!(stdout, "{}\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D", set_r13)
+                            writeln!(out, "{}\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D", set_r13)
                                 .unwrap();
                         }
                         _ => unreachable!(),
@@ -156,7 +154,7 @@ pub fn run_vm_transpile(code: &str) {
                                 "or" => "|",
                                 _ => unreachable!(),
                             };
-                            writeln!(stdout, "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nM=M{}D", op).unwrap();
+                            writeln!(out, "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nM=M{}D", op).unwrap();
                         }
                         "neg" | "not" => {
                             let op = match op {
@@ -164,7 +162,7 @@ pub fn run_vm_transpile(code: &str) {
                                 "not" => "!",
                                 _ => unreachable!(),
                             };
-                            writeln!(stdout, "@SP\nA=M-1\nM={}M", op).unwrap();
+                            writeln!(out, "@SP\nA=M-1\nM={}M", op).unwrap();
                         }
                         "eq" | "gt" | "lt" => {
                             let op = match op {
@@ -176,18 +174,14 @@ pub fn run_vm_transpile(code: &str) {
                             let label_true = label();
                             let label_end = label();
                             writeln!(
-                                stdout,
+                                out,
                                 "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nD=M-D\n@{}\nD;{}",
                                 label_true, op
                             )
                             .unwrap();
-                            writeln!(stdout, "@SP\nA=M-1\nM=0\n@{}\n0;JMP", label_end).unwrap();
-                            writeln!(
-                                stdout,
-                                "({})\n@SP\nA=M-1\nM=-1\n({})",
-                                label_true, label_end
-                            )
-                            .unwrap();
+                            writeln!(out, "@SP\nA=M-1\nM=0\n@{}\n0;JMP", label_end).unwrap();
+                            writeln!(out, "({})\n@SP\nA=M-1\nM=-1\n({})", label_true, label_end)
+                                .unwrap();
                         }
                         op => todo!("{}", op),
                     }
@@ -200,4 +194,6 @@ pub fn run_vm_transpile(code: &str) {
             break;
         }
     }
+
+    out
 }
