@@ -44,7 +44,7 @@ fn main() {
             if inputs.is_empty() {
                 let mut code = String::new();
                 std::io::stdin().read_to_string(&mut code).unwrap();
-                println!("{}", vm_to_asm("Undefined", &code));
+                vm_to_asm("Undefined", &code, &mut std::io::stdout()).unwrap()
             } else if inputs.len() == 1 && inputs[0].is_dir() {
                 let path = inputs[0].clone();
 
@@ -67,12 +67,8 @@ fn main() {
                     if path.is_file() && path.extension() == Some(OsStr::new("vm")) {
                         let class_name = path.file_stem().unwrap().to_str().unwrap();
 
-                        writeln!(
-                            out,
-                            "{}",
-                            vm_to_asm(class_name, &fs::read_to_string(&path).unwrap())
-                        )
-                        .unwrap();
+                        vm_to_asm(class_name, &fs::read_to_string(&path).unwrap(), &mut out)
+                            .unwrap();
                     }
                 }
             } else {
@@ -87,12 +83,7 @@ fn main() {
                         .open(path.with_extension("asm"))
                         .unwrap();
 
-                    write!(
-                        out,
-                        "{}",
-                        vm_to_asm(class_name, &fs::read_to_string(&path).unwrap())
-                    )
-                    .unwrap();
+                    vm_to_asm(class_name, &fs::read_to_string(&path).unwrap(), &mut out).unwrap();
                 }
             }
         }

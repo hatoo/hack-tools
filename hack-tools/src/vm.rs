@@ -1,8 +1,10 @@
-use std::fmt::Write;
-
 use tree_sitter::{Query, QueryCursor};
 
-pub fn vm_to_asm(class_name: &str, code: &str) -> String {
+pub fn vm_to_asm<W: std::io::Write>(
+    class_name: &str,
+    code: &str,
+    out: &mut W,
+) -> Result<(), std::io::Error> {
     let mut parser = tree_sitter::Parser::new();
     parser
         .set_language(tree_sitter_hack_vm::language())
@@ -34,10 +36,8 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
     let mut walker = root.walk();
 
     if !walker.goto_first_child() {
-        return String::new();
+        return Ok(());
     }
-
-    let mut out = String::new();
 
     let mut local_label_counter = 0;
     let mut local_label = move |function_name: &str| -> String {
@@ -116,7 +116,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                                 }
                                 _ => todo!(),
                             };
-                            writeln!(out, "{}\n@SP\nM=M+1\nA=M-1\nM=D", set_d).unwrap();
+                            writeln!(out, "{}\n@SP\nM=M+1\nA=M-1\nM=D", set_d)?;
                         }
                         "pop" => {
                             let set_r13 = match segment {
@@ -148,8 +148,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                                 }
                                 _ => todo!(),
                             };
-                            writeln!(out, "{}\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D", set_r13)
-                                .unwrap();
+                            writeln!(out, "{}\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D", set_r13)?;
                         }
                         _ => unreachable!(),
                     }
@@ -166,7 +165,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                                 "or" => "|",
                                 _ => unreachable!(),
                             };
-                            writeln!(out, "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nM=M{}D", op).unwrap();
+                            writeln!(out, "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nM=M{}D", op)?;
                         }
                         "neg" | "not" => {
                             let op = match op {
@@ -174,7 +173,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                                 "not" => "!",
                                 _ => unreachable!(),
                             };
-                            writeln!(out, "@SP\nA=M-1\nM={}M", op).unwrap();
+                            writeln!(out, "@SP\nA=M-1\nM={}M", op)?;
                         }
                         "eq" | "gt" | "lt" => {
                             let op = match op {
@@ -193,9 +192,8 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                                 label_true, op
                             )
                             .unwrap();
-                            writeln!(out, "@SP\nA=M-1\nM=0\n@{}\n0;JMP", label_end).unwrap();
-                            writeln!(out, "({})\n@SP\nA=M-1\nM=-1\n({})", label_true, label_end)
-                                .unwrap();
+                            writeln!(out, "@SP\nA=M-1\nM=0\n@{}\n0;JMP", label_end)?;
+                            writeln!(out, "({})\n@SP\nA=M-1\nM=-1\n({})", label_true, label_end)?;
                         }
                         op => todo!("{}", op),
                     }
@@ -212,8 +210,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                         "({}${})",
                         current_function.as_deref().unwrap_or_default(),
                         label
-                    )
-                    .unwrap();
+                    )?;
                 }
                 "goto" => {
                     let label = node
@@ -227,8 +224,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                         "@{}${}\n0;JMP",
                         current_function.as_deref().unwrap_or_default(),
                         label
-                    )
-                    .unwrap();
+                    )?;
                 }
                 "if_goto" => {
                     let label = node
@@ -242,8 +238,7 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
                         "@SP\nM=M-1\nA=M\nD=M\n@{}${}\nD;JNE",
                         current_function.as_deref().unwrap_or_default(),
                         label
-                    )
-                    .unwrap();
+                    )?;
                 }
                 "function" => {
                     let function_name = node
@@ -261,22 +256,22 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
 
                     current_function = Some(function_name.to_string());
 
-                    writeln!(out, "({})", function_name).unwrap();
-                    writeln!(out, "@SP\nD=M\n@LCL\nM=D").unwrap();
+                    writeln!(out, "({})", function_name)?;
+                    writeln!(out, "@SP\nD=M\n@LCL\nM=D")?;
                     for _ in 0..num_locals {
-                        writeln!(out, "@SP\nM=M+1\nA=M-1\nM=0").unwrap();
+                        writeln!(out, "@SP\nM=M+1\nA=M-1\nM=0")?;
                     }
                 }
                 "return" => {
-                    writeln!(out, "@LCL\nD=M\n@R13\nM=D").unwrap();
-                    writeln!(out, "@5\nD=D-A\nA=D\nD=M\n@R14\nM=D").unwrap();
-                    writeln!(out, "@SP\nM=M-1\nA=M\nD=M\n@ARG\nA=M\nM=D").unwrap();
-                    writeln!(out, "@ARG\nD=M+1\n@SP\nM=D").unwrap();
-                    writeln!(out, "@R13\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D").unwrap();
-                    writeln!(out, "@R13\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D").unwrap();
-                    writeln!(out, "@R13\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D").unwrap();
-                    writeln!(out, "@R13\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D").unwrap();
-                    writeln!(out, "@R14\nA=M\n0;JMP").unwrap();
+                    writeln!(out, "@LCL\nD=M\n@R13\nM=D")?;
+                    writeln!(out, "@5\nD=D-A\nA=D\nD=M\n@R14\nM=D")?;
+                    writeln!(out, "@SP\nM=M-1\nA=M\nD=M\n@ARG\nA=M\nM=D")?;
+                    writeln!(out, "@ARG\nD=M+1\n@SP\nM=D")?;
+                    writeln!(out, "@R13\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D")?;
+                    writeln!(out, "@R13\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D")?;
+                    writeln!(out, "@R13\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D")?;
+                    writeln!(out, "@R13\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D")?;
+                    writeln!(out, "@R14\nA=M\n0;JMP")?;
                 }
                 "call" => {
                     let function_name = node
@@ -294,15 +289,15 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
 
                     let ret_label = ret_addr(current_function.as_deref().unwrap_or_default());
 
-                    writeln!(out, "@{}\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1", ret_label).unwrap();
-                    writeln!(out, "@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
-                    writeln!(out, "@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
-                    writeln!(out, "@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
-                    writeln!(out, "@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
-                    writeln!(out, "@SP\nD=M\n@5\nD=D-A\n@{}\nD=D-A\n@ARG\nM=D", num_args).unwrap();
-                    writeln!(out, "@SP\nD=M\n@LCL\nM=D").unwrap();
-                    writeln!(out, "@{}\n0;JMP", function_name).unwrap();
-                    writeln!(out, "({})", ret_label).unwrap();
+                    writeln!(out, "@{}\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1", ret_label)?;
+                    writeln!(out, "@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1")?;
+                    writeln!(out, "@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1")?;
+                    writeln!(out, "@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1")?;
+                    writeln!(out, "@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1")?;
+                    writeln!(out, "@SP\nD=M\n@5\nD=D-A\n@{}\nD=D-A\n@ARG\nM=D", num_args)?;
+                    writeln!(out, "@SP\nD=M\n@LCL\nM=D")?;
+                    writeln!(out, "@{}\n0;JMP", function_name)?;
+                    writeln!(out, "({})", ret_label)?;
                 }
                 kind => unreachable!("Unknown kind {}", kind),
             }
@@ -313,5 +308,5 @@ pub fn vm_to_asm(class_name: &str, code: &str) -> String {
         }
     }
 
-    out
+    Ok(())
 }
