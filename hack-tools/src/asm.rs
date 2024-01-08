@@ -76,11 +76,9 @@ fn label_table(root: Node, code: &str) -> HashMap<String, u16> {
     loop {
         let node = walker.node();
         if node.kind() == "mnemonic" {
-            let mnemonic = node.child(0).unwrap();
-
-            if mnemonic.kind() == "label" {
-                let label = mnemonic
-                    .child(1)
+            if let Some(label) = node.child_by_field_name("label") {
+                let label = label
+                    .child_by_field_name("label")
                     .unwrap()
                     .utf8_text(code.as_bytes())
                     .unwrap()
@@ -100,19 +98,6 @@ fn label_table(root: Node, code: &str) -> HashMap<String, u16> {
 }
 
 fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> {
-    fn find<'tree>(node: Node<'tree>, kind: &str, code: &str) -> Option<Node<'tree>> {
-        let query = Query::new(
-            tree_sitter_hack_asm::language(),
-            &format!("({}) @cap", kind),
-        )
-        .unwrap();
-        let mut query_cursor = QueryCursor::new();
-        query_cursor
-            .matches(&query, node, code.as_bytes())
-            .next()
-            .map(|m| m.captures[0].node)
-    }
-
     let mut result = Vec::new();
 
     let mut walker = root.walk();
@@ -126,15 +111,12 @@ fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> 
     loop {
         let node = walker.node();
         if node.kind() == "mnemonic" {
-            let mnemonic = node.child(0).unwrap();
+            if let Some(inst) = node.child_by_field_name("inst") {
+                let opcode = if let Some(ainst) = inst.child_by_field_name("ainst") {
+                    let value = ainst.child_by_field_name("value").unwrap();
 
-            if mnemonic.kind() == "inst" {
-                let inst = mnemonic.child(0).unwrap();
-                let opcode = if inst.kind() == "ainst" {
-                    let value = inst.child(1).unwrap().child(0).unwrap();
-
-                    if value.kind() == "num" {
-                        let num = value
+                    if let Some(num) = value.child_by_field_name("num") {
+                        let num = num
                             .utf8_text(code.as_bytes())
                             .unwrap()
                             .parse::<u16>()
@@ -143,13 +125,17 @@ fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> 
 
                         num
                     } else {
-                        let label = value.utf8_text(code.as_bytes()).unwrap().to_string();
-                        let addr = if let Some(label) = table.get(&label) {
+                        let label = value
+                            .child_by_field_name("ident")
+                            .unwrap()
+                            .utf8_text(code.as_bytes())
+                            .unwrap();
+                        let addr = if let Some(label) = table.get(label) {
                             *label
                         } else {
                             let addr = var_addr;
                             var_addr += 1;
-                            table.insert(label, addr);
+                            table.insert(label.to_string(), addr);
                             addr
                         };
                         assert!(addr >> 15 == 0);
@@ -158,9 +144,11 @@ fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> 
                 } else {
                     // cinst
 
+                    let cinst = inst.child_by_field_name("cinst").unwrap();
+
                     let mut dest_bits = 0;
 
-                    if let Some(dest) = find(inst, "dest", code) {
+                    if let Some(dest) = cinst.child_by_field_name("dest") {
                         dest_bits = match dest.utf8_text(code.as_bytes()).unwrap() {
                             "M" => 0b001,
                             "D" => 0b010,
@@ -173,8 +161,7 @@ fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> 
                         };
                     }
 
-                    let comp = find(inst, "comp", code).unwrap();
-                    assert_eq!(comp.kind(), "comp");
+                    let comp = cinst.child_by_field_name("comp").unwrap();
 
                     let comp_bits = match comp.utf8_text(code.as_bytes()).unwrap() {
                         "0" => 0b0101010,
@@ -209,8 +196,7 @@ fn decode(root: Node, code: &str, table: &mut HashMap<String, u16>) -> Vec<u16> 
                     };
 
                     let mut jump_bits = 0;
-                    if let Some(jump) = find(inst, "jump", code) {
-                        assert_eq!(jump.kind(), "jump");
+                    if let Some(jump) = cinst.child_by_field_name("jump") {
                         jump_bits = match jump.utf8_text(code.as_bytes()).unwrap() {
                             "JGT" => 0b001,
                             "JEQ" => 0b010,

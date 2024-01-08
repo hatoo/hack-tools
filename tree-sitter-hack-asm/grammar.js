@@ -13,15 +13,15 @@ module.exports = grammar({
         comment: ($) => token(seq("//", /.*/)),
         ws: ($) => token(/\s+/),
 
-        mnemonic: ($) => choice($.inst, $.label),
+        mnemonic: ($) => choice(field("inst", $.inst), field("label", $.label)),
 
-        label: ($) => seq("(", $.ident, ")"),
-        inst: ($) => choice($.ainst, $.cinst),
+        label: ($) => seq("(", field("label", $.ident), ")"),
+        inst: ($) => choice(field("ainst", $.ainst), field("cinst", $.cinst)),
 
-        ainst: ($) => seq("@", $.value),
+        ainst: ($) => seq("@", field("value", $.value)),
         cinst: ($) => seq(optional(
-            seq($.dest, "=")
-        ), $.comp, optional(seq(";", $.jump)
+            seq(field("dest", $.dest), "=")
+        ), field("comp", $.comp), optional(seq(";", field("jump", $.jump))
         )),
 
         dest: ($) => choice(
@@ -75,7 +75,7 @@ module.exports = grammar({
             "JMP"
         ),
 
-        value: ($) => choice($.ident, $.num),
+        value: ($) => choice(field("ident", $.ident), field("num", $.num)),
         ident: ($) => /[$._a-zA-Z][$._a-zA-Z0-9]*/,
         num: ($) => /\d+/
     }
