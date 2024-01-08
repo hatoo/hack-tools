@@ -6,7 +6,7 @@ use std::{
     io::{Read, Write},
     path::PathBuf,
 };
-use vm::vm_transpile;
+use vm::vm_to_asm;
 
 mod asm;
 mod vm;
@@ -44,7 +44,7 @@ fn main() {
             if inputs.is_empty() {
                 let mut code = String::new();
                 std::io::stdin().read_to_string(&mut code).unwrap();
-                println!("{}", vm_transpile("Undefined", &code));
+                println!("{}", vm_to_asm("Undefined", &code));
             } else if inputs.len() == 1 && inputs[0].is_dir() {
                 let path = inputs[0].clone();
 
@@ -70,7 +70,7 @@ fn main() {
                         writeln!(
                             out,
                             "{}",
-                            vm_transpile(class_name, &fs::read_to_string(&path).unwrap())
+                            vm_to_asm(class_name, &fs::read_to_string(&path).unwrap())
                         )
                         .unwrap();
                     }
@@ -90,7 +90,7 @@ fn main() {
                     write!(
                         out,
                         "{}",
-                        vm_transpile(class_name, &fs::read_to_string(&path).unwrap())
+                        vm_to_asm(class_name, &fs::read_to_string(&path).unwrap())
                     )
                     .unwrap();
                 }

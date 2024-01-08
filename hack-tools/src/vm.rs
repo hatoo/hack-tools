@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use tree_sitter::{Query, QueryCursor};
 
-pub fn vm_transpile(class_name: &str, code: &str) -> String {
+pub fn vm_to_asm(class_name: &str, code: &str) -> String {
     let mut parser = tree_sitter::Parser::new();
     parser
         .set_language(tree_sitter_hack_vm::language())
