@@ -39,10 +39,10 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
 
     let mut out = String::new();
 
-    let mut label_counter = 0;
-    let mut label = move || -> String {
-        let l = format!("LABEL_{}", label_counter);
-        label_counter += 1;
+    let mut local_label_counter = 0;
+    let mut local_label = move || -> String {
+        let l = format!("{}.LABEL_{}", class_name, local_label_counter);
+        local_label_counter += 1;
         l
     };
 
@@ -171,8 +171,8 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
                                 "lt" => "JLT",
                                 _ => unreachable!(),
                             };
-                            let label_true = label();
-                            let label_end = label();
+                            let label_true = local_label();
+                            let label_end = local_label();
                             writeln!(
                                 out,
                                 "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nD=M-D\n@{}\nD;{}",

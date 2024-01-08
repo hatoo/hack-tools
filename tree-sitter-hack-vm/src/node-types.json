@@ -17,10 +17,70 @@
           "named": true
         },
         {
+          "type": "goto",
+          "named": true
+        },
+        {
+          "type": "if_goto",
+          "named": true
+        },
+        {
+          "type": "label",
+          "named": true
+        },
+        {
           "type": "stack_op",
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "goto",
+    "named": true,
+    "fields": {
+      "label": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "ident",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "if_goto",
+    "named": true,
+    "fields": {
+      "label": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "ident",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "label",
+    "named": true,
+    "fields": {
+      "label": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "ident",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -108,12 +168,24 @@
     "named": false
   },
   {
+    "type": "goto",
+    "named": false
+  },
+  {
     "type": "gt",
     "named": false
   },
   {
     "type": "ident",
     "named": true
+  },
+  {
+    "type": "if-goto",
+    "named": false
+  },
+  {
+    "type": "label",
+    "named": false
   },
   {
     "type": "local",
