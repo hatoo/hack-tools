@@ -51,8 +51,6 @@ fn main() {
                 let mut file_name = path.file_name().unwrap().to_os_string();
                 file_name.push(".asm");
 
-                // assert!(path.pop());
-
                 let mut out = OpenOptions::new()
                     .write(true)
                     .create(true)
