@@ -30,9 +30,9 @@ pub fn run_asm(code: &str) -> Vec<u16> {
         std::process::exit(1);
     }
 
-    let mut table = label_table(tree.root_node(), &code);
+    let mut table = label_table(tree.root_node(), code);
 
-    decode(tree.root_node(), &code, &mut table)
+    decode(tree.root_node(), code, &mut table)
 }
 
 fn label_table(root: Node, code: &str) -> HashMap<String, u16> {
