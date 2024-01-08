@@ -6,7 +6,7 @@ use std::{
     io::{Read, Write},
     path::PathBuf,
 };
-use vm::run_vm_transpile;
+use vm::vm_transpile;
 
 mod asm;
 mod vm;
@@ -22,7 +22,7 @@ enum Subcommands {
     #[clap(alias = "asm", about = "Hack assembly to binary")]
     As { input: Option<PathBuf> },
     #[clap(alias = "transpile", about = "Hack virtual machine to assembly")]
-    Vm { input: Vec<PathBuf> },
+    Vm { inputs: Vec<PathBuf> },
 }
 
 fn main() {
@@ -40,13 +40,13 @@ fn main() {
 
             run_asm(&code);
         }
-        Subcommands::Vm { input } => {
-            if input.is_empty() {
+        Subcommands::Vm { inputs } => {
+            if inputs.is_empty() {
                 let mut code = String::new();
                 std::io::stdin().read_to_string(&mut code).unwrap();
-                println!("{}", run_vm_transpile("Undefined", &code));
-            } else if input.len() == 1 && input[0].is_dir() {
-                let mut path = input[0].clone();
+                println!("{}", vm_transpile("Undefined", &code));
+            } else if inputs.len() == 1 && inputs[0].is_dir() {
+                let mut path = inputs[0].clone();
 
                 let mut file_name = path.file_name().unwrap().to_os_string();
                 file_name.push(".asm");
@@ -69,13 +69,13 @@ fn main() {
                         writeln!(
                             out,
                             "{}",
-                            run_vm_transpile(class_name, &fs::read_to_string(&path).unwrap())
+                            vm_transpile(class_name, &fs::read_to_string(&path).unwrap())
                         )
                         .unwrap();
                     }
                 }
             } else {
-                for path in input {
+                for path in inputs {
                     assert!(path.is_file());
 
                     let class_name = path.file_stem().unwrap().to_str().unwrap();
@@ -89,7 +89,7 @@ fn main() {
                     write!(
                         out,
                         "{}",
-                        run_vm_transpile(class_name, &fs::read_to_string(&path).unwrap())
+                        vm_transpile(class_name, &fs::read_to_string(&path).unwrap())
                     )
                     .unwrap();
                 }
