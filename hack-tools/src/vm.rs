@@ -186,7 +186,39 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
                         op => todo!("{}", op),
                     }
                 }
-                _ => unreachable!(),
+                "label" => {
+                    let label = node
+                        .child_by_field_name("label")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap();
+
+                    writeln!(out, "({}${})", class_name, label).unwrap();
+                }
+                "goto" => {
+                    let label = node
+                        .child_by_field_name("label")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap();
+
+                    writeln!(out, "@{}${}\n0;JMP", class_name, label).unwrap();
+                }
+                "if_goto" => {
+                    let label = node
+                        .child_by_field_name("label")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap();
+
+                    writeln!(
+                        out,
+                        "@SP\nM=M-1\nA=M\nD=M\n@{}${}\nD;JNE",
+                        class_name, label
+                    )
+                    .unwrap();
+                }
+                kind => unreachable!("Unknown kind {}", kind),
             }
         }
 
