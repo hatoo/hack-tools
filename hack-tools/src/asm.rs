@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use tree_sitter::{Node, Query, QueryCursor};
 
-pub fn run_asm(code: &str) {
+pub fn run_asm(code: &str) -> Vec<u16> {
     let mut parser = tree_sitter::Parser::new();
     parser
         .set_language(tree_sitter_hack_asm::language())
@@ -32,9 +32,7 @@ pub fn run_asm(code: &str) {
 
     let mut table = label_table(tree.root_node(), &code);
 
-    for opcode in decode(tree.root_node(), &code, &mut table) {
-        println!("{:016b}", opcode);
-    }
+    decode(tree.root_node(), &code, &mut table)
 }
 
 fn label_table(root: Node, code: &str) -> HashMap<String, u16> {

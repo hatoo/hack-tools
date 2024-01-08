@@ -30,15 +30,24 @@ fn main() {
 
     match opt.subcommand {
         Subcommands::As { input } => {
-            let code = if let Some(path) = input {
-                fs::read_to_string(path).unwrap()
+            if let Some(path) = input {
+                let code = fs::read_to_string(&path).unwrap();
+                let mut out = OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .open(path.with_extension("hack"))
+                    .unwrap();
+
+                for opcode in run_asm(&code) {
+                    writeln!(out, "{:016b}", opcode).unwrap();
+                }
             } else {
                 let mut code = String::new();
                 std::io::stdin().read_to_string(&mut code).unwrap();
-                code
-            };
-
-            run_asm(&code);
+                for opcode in run_asm(&code) {
+                    println!("{:016b}", opcode);
+                }
+            }
         }
         Subcommands::Vm { inputs } => {
             if inputs.is_empty() {
