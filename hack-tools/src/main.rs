@@ -46,12 +46,12 @@ fn main() {
                 std::io::stdin().read_to_string(&mut code).unwrap();
                 println!("{}", vm_transpile("Undefined", &code));
             } else if inputs.len() == 1 && inputs[0].is_dir() {
-                let mut path = inputs[0].clone();
+                let path = inputs[0].clone();
 
                 let mut file_name = path.file_name().unwrap().to_os_string();
                 file_name.push(".asm");
 
-                assert!(path.pop());
+                // assert!(path.pop());
 
                 let mut out = OpenOptions::new()
                     .write(true)
@@ -59,7 +59,8 @@ fn main() {
                     .open(path.join(file_name))
                     .unwrap();
 
-                // TODO Write boot strap
+                writeln!(out, "@261\nD=A\n@SP\nM=D\n@Sys.init\n0;JMP").unwrap();
+
                 for entry in fs::read_dir(path).unwrap() {
                     let path = entry.unwrap().path();
 

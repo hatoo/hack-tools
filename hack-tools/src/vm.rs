@@ -40,11 +40,23 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
     let mut out = String::new();
 
     let mut local_label_counter = 0;
-    let mut local_label = move || -> String {
-        let l = format!("{}.LABEL_{}", class_name, local_label_counter);
+    let mut local_label = move |function_name: &str| -> String {
+        let l = format!(
+            "{}.{}$TMP_LABEL_{}",
+            class_name, function_name, local_label_counter
+        );
         local_label_counter += 1;
         l
     };
+
+    let mut ret_addr_counter = 0;
+    let mut ret_addr = move |function_name: &str| -> String {
+        let l = format!("{}$ret.{}", function_name, ret_addr_counter);
+        ret_addr_counter += 1;
+        l
+    };
+
+    let mut current_function = None;
 
     loop {
         let node = walker.node();
@@ -171,8 +183,10 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
                                 "lt" => "JLT",
                                 _ => unreachable!(),
                             };
-                            let label_true = local_label();
-                            let label_end = local_label();
+                            let label_true =
+                                local_label(current_function.as_deref().unwrap_or_default());
+                            let label_end =
+                                local_label(current_function.as_deref().unwrap_or_default());
                             writeln!(
                                 out,
                                 "@SP\nM=M-1\nA=M\nD=M\nA=A-1\nD=M-D\n@{}\nD;{}",
@@ -193,7 +207,13 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
                         .utf8_text(code.as_bytes())
                         .unwrap();
 
-                    writeln!(out, "({}${})", class_name, label).unwrap();
+                    writeln!(
+                        out,
+                        "({}${})",
+                        current_function.as_deref().unwrap_or_default(),
+                        label
+                    )
+                    .unwrap();
                 }
                 "goto" => {
                     let label = node
@@ -202,7 +222,13 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
                         .utf8_text(code.as_bytes())
                         .unwrap();
 
-                    writeln!(out, "@{}${}\n0;JMP", class_name, label).unwrap();
+                    writeln!(
+                        out,
+                        "@{}${}\n0;JMP",
+                        current_function.as_deref().unwrap_or_default(),
+                        label
+                    )
+                    .unwrap();
                 }
                 "if_goto" => {
                     let label = node
@@ -214,9 +240,69 @@ pub fn vm_transpile(class_name: &str, code: &str) -> String {
                     writeln!(
                         out,
                         "@SP\nM=M-1\nA=M\nD=M\n@{}${}\nD;JNE",
-                        class_name, label
+                        current_function.as_deref().unwrap_or_default(),
+                        label
                     )
                     .unwrap();
+                }
+                "function" => {
+                    let function_name = node
+                        .child_by_field_name("name")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap();
+                    let num_locals: u16 = node
+                        .child_by_field_name("num_locals")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap()
+                        .parse()
+                        .unwrap();
+
+                    current_function = Some(function_name.to_string());
+
+                    writeln!(out, "({})", function_name).unwrap();
+                    writeln!(out, "@SP\nD=M\n@LCL\nM=D").unwrap();
+                    for _ in 0..num_locals {
+                        writeln!(out, "@SP\nM=M+1\nA=M-1\nM=0").unwrap();
+                    }
+                }
+                "return" => {
+                    writeln!(out, "@LCL\nD=M\n@R13\nM=D").unwrap();
+                    writeln!(out, "@5\nD=D-A\nA=D\nD=M\n@R14\nM=D").unwrap();
+                    writeln!(out, "@SP\nM=M-1\nA=M\nD=M\n@ARG\nA=M\nM=D").unwrap();
+                    writeln!(out, "@ARG\nD=M+1\n@SP\nM=D").unwrap();
+                    writeln!(out, "@R13\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D").unwrap();
+                    writeln!(out, "@R13\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D").unwrap();
+                    writeln!(out, "@R13\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D").unwrap();
+                    writeln!(out, "@R13\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D").unwrap();
+                    writeln!(out, "@R14\nA=M\n0;JMP").unwrap();
+                }
+                "call" => {
+                    let function_name = node
+                        .child_by_field_name("name")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap();
+                    let num_args: u16 = node
+                        .child_by_field_name("num_args")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
+                        .unwrap()
+                        .parse()
+                        .unwrap();
+
+                    let ret_label = ret_addr(current_function.as_deref().unwrap_or_default());
+
+                    writeln!(out, "@{}\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1", ret_label).unwrap();
+                    writeln!(out, "@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
+                    writeln!(out, "@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
+                    writeln!(out, "@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
+                    writeln!(out, "@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1").unwrap();
+                    writeln!(out, "@SP\nD=M\n@5\nD=D-A\n@{}\nD=D-A\n@ARG\nM=D", num_args).unwrap();
+                    writeln!(out, "@SP\nD=M\n@LCL\nM=D").unwrap();
+                    writeln!(out, "@{}\n0;JMP", function_name).unwrap();
+                    writeln!(out, "({})", ret_label).unwrap();
                 }
                 kind => unreachable!("Unknown kind {}", kind),
             }

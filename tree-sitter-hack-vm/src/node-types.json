@@ -5,6 +5,32 @@
     "fields": {}
   },
   {
+    "type": "call",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "ident",
+            "named": true
+          }
+        ]
+      },
+      "num_args": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "num",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "command",
     "named": true,
     "fields": {},
@@ -14,6 +40,14 @@
       "types": [
         {
           "type": "arithmetic_op",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "function",
           "named": true
         },
         {
@@ -29,10 +63,40 @@
           "named": true
         },
         {
+          "type": "return",
+          "named": true
+        },
+        {
           "type": "stack_op",
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "function",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "ident",
+            "named": true
+          }
+        ]
+      },
+      "num_locals": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "num",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -156,6 +220,10 @@
     "named": false
   },
   {
+    "type": "call",
+    "named": false
+  },
+  {
     "type": "comment",
     "named": true
   },
@@ -165,6 +233,10 @@
   },
   {
     "type": "eq",
+    "named": false
+  },
+  {
+    "type": "function",
     "named": false
   },
   {
@@ -222,6 +294,10 @@
   {
     "type": "push",
     "named": false
+  },
+  {
+    "type": "return",
+    "named": true
   },
   {
     "type": "static",

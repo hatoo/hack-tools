@@ -9,7 +9,7 @@ module.exports = grammar({
     rules: {
         source_file: ($) => repeat($.command),
 
-        command: ($) => choice($.arithmetic_op, $.stack_op, $.label, $.goto, $.if_goto),
+        command: ($) => choice($.arithmetic_op, $.stack_op, $.label, $.goto, $.if_goto, $.function, $.return, $.call),
 
         comment: ($) => token(seq("//", /.*/)),
         ws: ($) => token(/\s+/),
@@ -17,6 +17,15 @@ module.exports = grammar({
         label: ($) => seq("label", field("label", $.ident)),
         goto: ($) => seq("goto", field("label", $.ident)),
         if_goto: ($) => seq("if-goto", field("label", $.ident)),
+
+        function: ($) => seq(
+            "function",
+            field("name", $.ident),
+            field("num_locals", $.num),
+        ),
+
+        call: ($) => seq("call", field("name", $.ident), field("num_args", $.num)),
+        return: ($) => "return",
 
         stack_op: ($) => choice(
             seq(field("action", "push"), field("segment", $.segment), field("index", $.num)),
