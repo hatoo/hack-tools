@@ -4,11 +4,19 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "className",
+          "named": true
+        },
+        {
+          "type": "classVarDec",
+          "named": true
+        },
+        {
+          "type": "subroutineDec",
           "named": true
         }
       ]
@@ -30,9 +38,23 @@
     }
   },
   {
-    "type": "comment",
+    "type": "classVarDec",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "type",
+          "named": true
+        },
+        {
+          "type": "varName",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "doStatement",
@@ -259,6 +281,33 @@
     }
   },
   {
+    "type": "subroutineDec",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "parameterList",
+          "named": true
+        },
+        {
+          "type": "subroutineBody",
+          "named": true
+        },
+        {
+          "type": "subroutineName",
+          "named": true
+        },
+        {
+          "type": "type",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "subroutineName",
     "named": true,
     "fields": {},
@@ -468,6 +517,10 @@
   {
     "type": "class",
     "named": false
+  },
+  {
+    "type": "comment",
+    "named": true
   },
   {
     "type": "constructor",

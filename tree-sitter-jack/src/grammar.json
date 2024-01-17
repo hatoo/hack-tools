@@ -6,11 +6,11 @@
       "name": "class"
     },
     "comment": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "TOKEN",
-          "content": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
             "type": "SEQ",
             "members": [
               {
@@ -19,14 +19,11 @@
               },
               {
                 "type": "PATTERN",
-                "value": ".*"
+                "value": "(\\\\+(.|\\r?\\n)|[^\\\\\\n])*"
               }
             ]
-          }
-        },
-        {
-          "type": "TOKEN",
-          "content": {
+          },
+          {
             "type": "SEQ",
             "members": [
               {
@@ -43,8 +40,8 @@
               }
             ]
           }
-        }
-      ]
+        ]
+      }
     },
     "ws": {
       "type": "TOKEN",
@@ -96,6 +93,20 @@
         {
           "type": "STRING",
           "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "classVarDec"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "subroutineDec"
+          }
         },
         {
           "type": "STRING",
@@ -594,97 +605,101 @@
       ]
     },
     "term": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "integerConstant"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "stringConstant"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "keywordConstant"
-        },
-        {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "varName"
-            },
-            {
-              "type": "STRING",
-              "value": "["
-            },
-            {
-              "type": "SYMBOL",
-              "name": "expression"
-            },
-            {
-              "type": "STRING",
-              "value": "]"
-            }
-          ]
-        },
-        {
-          "type": "SYMBOL",
-          "name": "varName"
-        },
-        {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "("
-            },
-            {
-              "type": "SYMBOL",
-              "name": "expression"
-            },
-            {
-              "type": "STRING",
-              "value": ")"
-            }
-          ]
-        },
-        {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "unalyOp"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "term"
-            }
-          ]
-        },
-        {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "term"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "op"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "term"
-            }
-          ]
-        },
-        {
-          "type": "SYMBOL",
-          "name": "subroutineCall"
-        }
-      ]
+      "type": "PREC_LEFT",
+      "value": 1,
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "integerConstant"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "stringConstant"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "keywordConstant"
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "varName"
+              },
+              {
+                "type": "STRING",
+                "value": "["
+              },
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              },
+              {
+                "type": "STRING",
+                "value": "]"
+              }
+            ]
+          },
+          {
+            "type": "SYMBOL",
+            "name": "varName"
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "("
+              },
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              },
+              {
+                "type": "STRING",
+                "value": ")"
+              }
+            ]
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "unalyOp"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "term"
+              }
+            ]
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "term"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "op"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "term"
+              }
+            ]
+          },
+          {
+            "type": "SYMBOL",
+            "name": "subroutineCall"
+          }
+        ]
+      }
     },
     "subroutineCall": {
       "type": "CHOICE",

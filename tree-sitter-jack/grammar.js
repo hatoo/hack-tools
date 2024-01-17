@@ -9,7 +9,14 @@ module.exports = grammar({
     rules: {
         source_file: ($) => $.class,
 
-        comment: ($) => choice(token(seq("//", /.*/)), token(seq("/*", /[^*]*\*+([^/*][^*]*\*+)*/, "/"))),
+        comment: _ => token(choice(
+            seq('//', /(\\+(.|\r?\n)|[^\\\n])*/),
+            seq(
+                '/*',
+                /[^*]*\*+([^/*][^*]*\*+)*/,
+                '/',
+            ),
+        )),
         ws: ($) => token(/\s+/),
 
         // Lexical elements
@@ -27,7 +34,6 @@ module.exports = grammar({
         subroutineDec: ($) => seq(choice('constructor', 'function', 'method'), choice('void', $.type), $.subroutineName, $.parameterList, $.subroutineBody),
         parameterList: ($) => seq('(', optional(seq($.type, $.varName, repeat(seq(',', $.type, $.varName)))), ')'),
         varDec: ($) => seq('var', $.type, $.varName, repeat(seq(',', $.varName)), ';'),
-        class: ($) => seq('class', $.className, '{', '}'),
         className: ($) => $.identifier,
         subroutineName: ($) => $.identifier,
         varName: ($) => $.identifier,
@@ -44,7 +50,7 @@ module.exports = grammar({
         // Expressions
 
         expression: ($) => seq($.term, repeat(seq($.op, $.term))),
-        term: ($) => choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.varName, '[', $.expression, ']'), $.varName, seq('(', $.expression, ')'), seq($.unalyOp, $.term), seq($.term, $.op, $.term), $.subroutineCall),
+        term: ($) => prec.left(1, choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.varName, '[', $.expression, ']'), $.varName, seq('(', $.expression, ')'), seq($.unalyOp, $.term), seq($.term, $.op, $.term), $.subroutineCall)),
         subroutineCall: ($) => choice(seq($.subroutineName, $.expressionList), seq($.identifier, '.', $.subroutineName, $.expressionList)),
         expressionList: ($) => seq('(', optional(seq($.expression, repeat(seq(',', $.expression)))), ')'),
         op: ($) => choice('+', '-', '*', '/', '&', '|', '<', '>', '='),
