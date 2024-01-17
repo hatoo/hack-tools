@@ -85,6 +85,34 @@ fn rec<W: std::fmt::Write>(
                 }
             }
         }
+        "statement" if node.is_named() => {
+            let mut prev = node.prev_sibling();
+            while prev.map(|n| n.is_extra()).unwrap_or(false) {
+                prev = prev.unwrap().prev_sibling();
+            }
+            if prev.map(|n| n.kind()) != Some("statement") {
+                writeln!(out, "{space}<statements>")?;
+            }
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        rec(node, code, indent + 1, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+            let mut next = node.next_sibling();
+            while next.map(|n| n.is_extra()).unwrap_or(false) {
+                next = next.unwrap().next_sibling();
+            }
+            if next.map(|n| n.kind()) != Some("statement") {
+                writeln!(out, "{space}</statements>")?;
+            }
+        }
         _ => {
             writeln!(out, "{space}<{kind}>")?;
             let mut walker = node.walk();

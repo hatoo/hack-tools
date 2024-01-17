@@ -31,8 +31,8 @@ module.exports = grammar({
         classVarDec: ($) => seq(choice('static', 'field'), $.type, $.identifier, repeat(seq(',', $.identifier)), ';'),
         type: ($) => choice('int', 'char', 'boolean', $.identifier),
         subroutineBody: ($) => seq('{', repeat($.varDec), repeat($.statement), '}'),
-        subroutineDec: ($) => seq(choice('constructor', 'function', 'method'), choice('void', $.type), $.identifier, $.parameterList, $.subroutineBody),
-        parameterList: ($) => seq('(', optional(seq($.type, $.identifier, repeat(seq(',', $.type, $.identifier)))), ')'),
+        subroutineDec: ($) => seq(choice('constructor', 'function', 'method'), choice('void', $.type), $.identifier, '(', optional($.parameterList), ')', $.subroutineBody),
+        parameterList: ($) => seq($.type, $.identifier, repeat(seq(',', $.type, $.identifier))),
         varDec: ($) => seq('var', $.type, $.identifier, repeat(seq(',', $.identifier)), ';'),
 
         // Statements
@@ -48,8 +48,8 @@ module.exports = grammar({
 
         expression: ($) => seq($.term, repeat(seq($.op, $.term))),
         term: ($) => prec.left(1, choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.identifier, '[', $.expression, ']'), $.identifier, seq('(', $.expression, ')'), seq($.unalyOp, $.term), seq($.term, $.op, $.term), $.subroutineCall)),
-        subroutineCall: ($) => choice(seq($.identifier, $.expressionList), seq($.identifier, '.', $.identifier, $.expressionList)),
-        expressionList: ($) => seq('(', optional(seq($.expression, repeat(seq(',', $.expression)))), ')'),
+        subroutineCall: ($) => choice(seq($.identifier, '(', field("expressionList", optional($.expressionList)), ')'), seq($.identifier, '.', $.identifier, '(', field("expressionList", optional($.expressionList)), ')')),
+        expressionList: ($) => seq($.expression, repeat(seq(',', $.expression))),
         op: ($) => choice('+', '-', '*', '/', '&', '|', '<', '>', '='),
         unalyOp: ($) => choice('-', '~'),
         keywordConstant: ($) => choice('true', 'false', 'null', 'this'),
