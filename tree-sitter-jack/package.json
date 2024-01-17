@@ -1,7 +1,7 @@
 {
-  "name": "tree-sitter-hack-vm",
+  "name": "tree-sitter-jack",
   "version": "0.0.1",
-  "description": "hack-vm grammar for tree-sitter",
+  "description": "jack grammar for tree-sitter",
   "main": "bindings/node",
   "keywords": [
     "parsing",

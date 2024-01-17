@@ -9,6 +9,7 @@ use std::{
 use vm::vm_to_asm;
 
 mod asm;
+mod jack_analyzer;
 mod vm;
 
 #[derive(clap::Parser)]
@@ -20,9 +21,16 @@ struct Opt {
 #[derive(clap::Subcommand)]
 enum Subcommands {
     #[clap(alias = "asm", about = "Hack assembly to binary")]
-    As { input: Option<PathBuf> },
+    As {
+        input: Option<PathBuf>,
+    },
     #[clap(alias = "transpile", about = "Hack virtual machine to assembly")]
-    Vm { inputs: Vec<PathBuf> },
+    Vm {
+        inputs: Vec<PathBuf>,
+    },
+    JackAnalyzer {
+        input: PathBuf,
+    },
 }
 
 fn main() {
@@ -93,6 +101,12 @@ fn main() {
                     vm_to_asm(class_name, &fs::read_to_string(&path).unwrap(), &mut out).unwrap();
                 }
             }
+        }
+        Subcommands::JackAnalyzer { input } => {
+            println!(
+                "{}",
+                jack_analyzer::syntax_analysis(&fs::read_to_string(&input).unwrap())
+            );
         }
     }
 }

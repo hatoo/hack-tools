@@ -122,6 +122,7 @@ dependencies = [
  "tree-sitter",
  "tree-sitter-hack-asm",
  "tree-sitter-hack-vm",
+ "tree-sitter-jack",
 ]
 
 [[package]]
@@ -226,6 +227,14 @@ dependencies = [
 
 [[package]]
 name = "tree-sitter-hack-vm"
+version = "0.0.1"
+dependencies = [
+ "cc",
+ "tree-sitter",
+]
+
+[[package]]
+name = "tree-sitter-jack"
 version = "0.0.1"
 dependencies = [
  "cc",

@@ -10,3 +10,4 @@ clap = { version = "4.4.12", features = ["derive"] }
 tree-sitter = "0.20.10"
 tree-sitter-hack-asm = { path = "../tree-sitter-hack-asm" }
 tree-sitter-hack-vm = { path = "../tree-sitter-hack-vm" }
+tree-sitter-jack = { path = "../tree-sitter-jack" }
