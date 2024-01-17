@@ -1,4 +1,4 @@
-use tree_sitter::{Node, Query, QueryCursor, TreeCursor};
+use tree_sitter::{Node, Query, QueryCursor};
 
 pub fn syntax_analysis(code: &str) -> String {
     let mut parser = tree_sitter::Parser::new();

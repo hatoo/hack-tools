@@ -29,7 +29,7 @@ enum Subcommands {
         inputs: Vec<PathBuf>,
     },
     JackAnalyzer {
-        input: PathBuf,
+        inputs: Vec<PathBuf>,
     },
 }
 
@@ -102,11 +102,50 @@ fn main() {
                 }
             }
         }
-        Subcommands::JackAnalyzer { input } => {
-            println!(
-                "{}",
-                jack_analyzer::syntax_analysis(&fs::read_to_string(&input).unwrap())
-            );
+        Subcommands::JackAnalyzer { inputs } => {
+            if inputs.is_empty() {
+                let mut code = String::new();
+                std::io::stdin().read_to_string(&mut code).unwrap();
+                print!("{}", jack_analyzer::syntax_analysis(&code));
+            } else if inputs.len() == 1 && inputs[0].is_dir() {
+                let path = inputs[0].clone();
+
+                for entry in fs::read_dir(path).unwrap() {
+                    let path = entry.unwrap().path();
+
+                    if path.is_file() && path.extension() == Some(OsStr::new("jack")) {
+                        let mut out = OpenOptions::new()
+                            .write(true)
+                            .create(true)
+                            .open(path.with_extension("xml"))
+                            .unwrap();
+
+                        write!(
+                            out,
+                            "{}",
+                            jack_analyzer::syntax_analysis(&fs::read_to_string(&path).unwrap())
+                        )
+                        .unwrap();
+                    }
+                }
+            } else {
+                for path in inputs {
+                    assert!(path.is_file());
+
+                    let mut out = OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .open(path.with_extension("xml"))
+                        .unwrap();
+
+                    write!(
+                        out,
+                        "{}",
+                        jack_analyzer::syntax_analysis(&fs::read_to_string(&path).unwrap())
+                    )
+                    .unwrap();
+                }
+            }
         }
     }
 }
