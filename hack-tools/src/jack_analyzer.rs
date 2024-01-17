@@ -1,4 +1,4 @@
-use tree_sitter::{Query, QueryCursor};
+use tree_sitter::{Node, Query, QueryCursor, TreeCursor};
 
 pub fn syntax_analysis(code: &str) -> String {
     let mut parser = tree_sitter::Parser::new();
@@ -26,5 +26,82 @@ pub fn syntax_analysis(code: &str) -> String {
         std::process::exit(1);
     }
 
-    String::new()
+    let mut out = String::new();
+
+    rec(
+        tree.root_node().child_by_field_name("class").unwrap(),
+        code,
+        0,
+        &mut out,
+    )
+    .unwrap();
+
+    out
+}
+
+fn rec<W: std::fmt::Write>(
+    node: Node,
+    code: &str,
+    indent: usize,
+    out: &mut W,
+) -> Result<(), std::fmt::Error> {
+    let kind = node.kind();
+    let space = " ".repeat(indent * 2);
+
+    match node.kind() {
+        "class" | "constructor" | "function" | "method" | "field" | "static" | "var" | "int"
+        | "char" | "boolean" | "void" | "true" | "false" | "null" | "this" | "let" | "do"
+        | "if" | "else" | "while" | "return"
+            if !node.is_named() =>
+        {
+            writeln!(out, "{space}<keyword> {} </keyword>", node.kind())?;
+        }
+        "{" | "}" | "(" | ")" | "[" | "]" | "." | "," | ";" | "+" | "-" | "*" | "/" | "&" | "|"
+        | "<" | ">" | "=" | "~" => {
+            writeln!(
+                out,
+                "{space}<symbol> {} </symbol>",
+                html_escape::encode_text(node.kind())
+            )?;
+        }
+        "identifier" if node.is_named() => {
+            writeln!(
+                out,
+                "{space}<identifier> {} </identifier>",
+                html_escape::encode_text(node.utf8_text(code.as_bytes()).unwrap())
+            )?;
+        }
+        "type" if node.is_named() => {
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        rec(node, code, indent, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+        }
+        _ => {
+            writeln!(out, "{space}<{kind}>")?;
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        rec(node, code, indent + 1, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+            writeln!(out, "{space}</{kind}>")?;
+        }
+    }
+
+    Ok(())
 }

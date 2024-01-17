@@ -2,8 +2,12 @@
   "name": "jack",
   "rules": {
     "source_file": {
-      "type": "SYMBOL",
-      "name": "class"
+      "type": "FIELD",
+      "name": "class",
+      "content": {
+        "type": "SYMBOL",
+        "name": "class"
+      }
     },
     "comment": {
       "type": "TOKEN",
@@ -88,7 +92,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "className"
+          "name": "identifier"
         },
         {
           "type": "STRING",
@@ -136,7 +140,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "varName"
+          "name": "identifier"
         },
         {
           "type": "REPEAT",
@@ -149,7 +153,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "varName"
+                "name": "identifier"
               }
             ]
           }
@@ -177,7 +181,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "className"
+          "name": "identifier"
         }
       ]
     },
@@ -243,7 +247,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "subroutineName"
+          "name": "identifier"
         },
         {
           "type": "SYMBOL",
@@ -274,7 +278,7 @@
                 },
                 {
                   "type": "SYMBOL",
-                  "name": "varName"
+                  "name": "identifier"
                 },
                 {
                   "type": "REPEAT",
@@ -291,7 +295,7 @@
                       },
                       {
                         "type": "SYMBOL",
-                        "name": "varName"
+                        "name": "identifier"
                       }
                     ]
                   }
@@ -322,7 +326,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "varName"
+          "name": "identifier"
         },
         {
           "type": "REPEAT",
@@ -335,7 +339,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "varName"
+                "name": "identifier"
               }
             ]
           }
@@ -345,18 +349,6 @@
           "value": ";"
         }
       ]
-    },
-    "className": {
-      "type": "SYMBOL",
-      "name": "identifier"
-    },
-    "subroutineName": {
-      "type": "SYMBOL",
-      "name": "identifier"
-    },
-    "varName": {
-      "type": "SYMBOL",
-      "name": "identifier"
     },
     "statement": {
       "type": "CHOICE",
@@ -392,7 +384,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "varName"
+          "name": "identifier"
         },
         {
           "type": "CHOICE",
@@ -627,7 +619,7 @@
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "varName"
+                "name": "identifier"
               },
               {
                 "type": "STRING",
@@ -645,7 +637,7 @@
           },
           {
             "type": "SYMBOL",
-            "name": "varName"
+            "name": "identifier"
           },
           {
             "type": "SEQ",
@@ -709,7 +701,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "subroutineName"
+              "name": "identifier"
             },
             {
               "type": "SYMBOL",
@@ -730,7 +722,7 @@
             },
             {
               "type": "SYMBOL",
-              "name": "subroutineName"
+              "name": "identifier"
             },
             {
               "type": "SYMBOL",
