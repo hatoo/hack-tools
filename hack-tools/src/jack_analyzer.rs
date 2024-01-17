@@ -64,6 +64,25 @@ fn rec<W: std::fmt::Write>(
                 html_escape::encode_text(node.kind())
             )?;
         }
+        "stringConstant" if node.is_named() => {
+            writeln!(
+                out,
+                "{space}<stringConstant> {} </stringConstant>",
+                html_escape::encode_text(
+                    node.utf8_text(code.as_bytes())
+                        .unwrap()
+                        .trim_start_matches('"')
+                        .trim_end_matches('"')
+                )
+            )?;
+        }
+        "integerConstant" if node.is_named() => {
+            writeln!(
+                out,
+                "{space}<integerConstant> {} </integerConstant>",
+                node.utf8_text(code.as_bytes()).unwrap()
+            )?;
+        }
         "identifier" if node.is_named() => {
             writeln!(
                 out,
@@ -71,7 +90,28 @@ fn rec<W: std::fmt::Write>(
                 html_escape::encode_text(node.utf8_text(code.as_bytes()).unwrap())
             )?;
         }
+        "keywordConstant" if node.is_named() => {
+            writeln!(
+                out,
+                "{space}<keyword> {} </keyword>",
+                html_escape::encode_text(node.utf8_text(code.as_bytes()).unwrap())
+            )?;
+        }
         "type" if node.is_named() => {
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        rec(node, code, indent, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+        }
+        "op" if node.is_named() => {
             let mut walker = node.walk();
             if walker.goto_first_child() {
                 loop {
@@ -113,6 +153,69 @@ fn rec<W: std::fmt::Write>(
                 writeln!(out, "{space}</statements>")?;
             }
         }
+        "subroutineCall" if node.is_named() => {
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                let mut last_lparen = false;
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        if node.kind() == ")" && last_lparen {
+                            writeln!(out, "{space}<expressionList>")?;
+                            writeln!(out, "{space}</expressionList>")?;
+                        }
+                        last_lparen = node.kind() == "(";
+                        rec(node, code, indent, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+        }
+        "subroutineDec" if node.is_named() => {
+            writeln!(out, "{space}<{kind}>")?;
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                let mut last_lparen = false;
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        if node.kind() == ")" && last_lparen {
+                            writeln!(out, "{space}  <parameterList>")?;
+                            writeln!(out, "{space}  </parameterList>")?;
+                        }
+                        last_lparen = node.kind() == "(";
+                        rec(node, code, indent + 1, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+            writeln!(out, "{space}</{kind}>")?;
+        }
+        /*
+        "expression" if node.is_named() => {
+            writeln!(out, "{space}<{kind}>", kind = node.kind())?;
+            let mut walker = node.walk();
+            if walker.goto_first_child() {
+                if walker.node().kind() == "term" {
+                    walker.goto_first_child();
+                }
+                loop {
+                    let node = walker.node();
+                    if !node.is_extra() {
+                        rec(node, code, indent + 1, out)?;
+                    }
+                    if !walker.goto_next_sibling() {
+                        break;
+                    }
+                }
+            }
+            writeln!(out, "{space}</{kind}>", kind = node.kind())?;
+        }
+        */
         _ => {
             writeln!(out, "{space}<{kind}>")?;
             let mut walker = node.walk();

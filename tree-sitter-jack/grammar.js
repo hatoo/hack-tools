@@ -47,7 +47,7 @@ module.exports = grammar({
         // Expressions
 
         expression: ($) => seq($.term, repeat(seq($.op, $.term))),
-        term: ($) => prec.left(1, choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.identifier, '[', $.expression, ']'), $.identifier, seq('(', $.expression, ')'), seq($.unalyOp, $.term), seq($.term, $.op, $.term), $.subroutineCall)),
+        term: ($) => prec.left(1, choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.identifier, '[', $.expression, ']'), $.identifier, seq('(', $.expression, ')'), seq($.unalyOp, $.term), $.subroutineCall)),
         subroutineCall: ($) => choice(seq($.identifier, '(', field("expressionList", optional($.expressionList)), ')'), seq($.identifier, '.', $.identifier, '(', field("expressionList", optional($.expressionList)), ')')),
         expressionList: ($) => seq($.expression, repeat(seq(',', $.expression))),
         op: ($) => choice('+', '-', '*', '/', '&', '|', '<', '>', '='),

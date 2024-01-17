@@ -665,23 +665,6 @@
             ]
           },
           {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "term"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "op"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "term"
-              }
-            ]
-          },
-          {
             "type": "SYMBOL",
             "name": "subroutineCall"
           }
