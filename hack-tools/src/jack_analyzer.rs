@@ -111,7 +111,7 @@ fn rec<W: std::fmt::Write>(
                 }
             }
         }
-        "op" if node.is_named() => {
+        "op" | "unalyOp" if node.is_named() => {
             let mut walker = node.walk();
             if walker.goto_first_child() {
                 loop {
