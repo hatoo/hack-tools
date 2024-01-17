@@ -7,7 +7,7 @@ module.exports = grammar({
     ],
 
     rules: {
-        source_file: ($) => repeat($.command),
+        source_file: ($) => $.class,
 
         comment: ($) => choice(token(seq("//", /.*/)), token(seq("/*", /[^*]*\*+([^/*][^*]*\*+)*/, "/"))),
         ws: ($) => token(/\s+/),
@@ -20,6 +20,13 @@ module.exports = grammar({
 
         // program structure
 
+        class: ($) => seq('class', $.className, '{', repeat($.classVarDec), repeat($.subroutineDec), '}'),
+        classVarDec: ($) => seq(choice('static', 'field'), $.type, $.varName, repeat(seq(',', $.varName)), ';'),
+        type: ($) => choice('int', 'char', 'boolean', $.className),
+        subroutineBody: ($) => seq('{', repeat($.varDec), repeat($.statement), '}'),
+        subroutineDec: ($) => seq(choice('constructor', 'function', 'method'), choice('void', $.type), $.subroutineName, $.parameterList, $.subroutineBody),
+        parameterList: ($) => seq('(', optional(seq($.type, $.varName, repeat(seq(',', $.type, $.varName)))), ')'),
+        varDec: ($) => seq('var', $.type, $.varName, repeat(seq(',', $.varName)), ';'),
         class: ($) => seq('class', $.className, '{', '}'),
         className: ($) => $.identifier,
         subroutineName: ($) => $.identifier,
@@ -27,11 +34,10 @@ module.exports = grammar({
 
         // Statements
 
-        statements: ($) => repeat($.statement),
         statement: ($) => choice($.letStatement, $.ifStatement, $.whileStatement, $.doStatement, $.returnStatement),
         letStatement: ($) => seq('let', $.varName, optional(seq('[', $.expression, ']')), '=', $.expression, ';'),
-        ifStatement: ($) => seq('if', '(', $.expression, ')', '{', $.statements, '}', optional(seq('else', '{', $.statements, '}'))),
-        whileStatement: ($) => seq('while', '(', $.expression, ')', '{', $.statements, '}'),
+        ifStatement: ($) => seq('if', '(', $.expression, ')', '{', repeat($.statement), '}', optional(seq('else', '{', repeat($.statement), '}'))),
+        whileStatement: ($) => seq('while', '(', $.expression, ')', '{', repeat($.statement), '}'),
         doStatement: ($) => seq('do', $.subroutineCall, ';'),
         returnStatement: ($) => seq('return', optional($.expression), ';'),
 
@@ -39,8 +45,8 @@ module.exports = grammar({
 
         expression: ($) => seq($.term, repeat(seq($.op, $.term))),
         term: ($) => choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.varName, '[', $.expression, ']'), $.varName, seq('(', $.expression, ')'), seq($.unalyOp, $.term), seq($.term, $.op, $.term), $.subroutineCall),
-        subroutineCall: ($) => choice(seq($.subroutineName, '(', $.expressionList, ')'), seq($.identifier, '.', $.subroutineName, '(', $.expressionList, ')')),
-        expressionList: ($) => optional(seq($.expression, repeat(seq(',', $.expression)))),
+        subroutineCall: ($) => choice(seq($.subroutineName, $.expressionList), seq($.identifier, '.', $.subroutineName, $.expressionList)),
+        expressionList: ($) => seq('(', optional(seq($.expression, repeat(seq(',', $.expression)))), ')'),
         op: ($) => choice('+', '-', '*', '/', '&', '|', '<', '>', '='),
         unalyOp: ($) => choice('-', '~'),
         keywordConstant: ($) => choice('true', 'false', 'null', 'this'),
