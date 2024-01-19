@@ -111,7 +111,7 @@ fn rec<W: std::fmt::Write>(
                 }
             }
         }
-        "op" | "unalyOp" | "parameter" | "op_term" | "lvalue" | "var_index" | "paren"
+        "op" | "unalyOp" | "parameter" | "op_term" | "lvalue" | "var_index" | "paren" | "unaly"
             if node.is_named() =>
         {
             let mut walker = node.walk();

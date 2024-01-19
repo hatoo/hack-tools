@@ -530,6 +530,16 @@
           }
         ]
       },
+      "unaly": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "unaly",
+            "named": true
+          }
+        ]
+      },
       "var_index": {
         "multiple": false,
         "required": false,
@@ -542,19 +552,11 @@
       }
     },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "types": [
         {
           "type": "subroutineCall",
-          "named": true
-        },
-        {
-          "type": "term",
-          "named": true
-        },
-        {
-          "type": "unalyOp",
           "named": true
         }
       ]
@@ -573,6 +575,32 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "unaly",
+    "named": true,
+    "fields": {
+      "op": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "unalyOp",
+            "named": true
+          }
+        ]
+      },
+      "term": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "term",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {

@@ -50,6 +50,7 @@ module.exports = grammar({
         lvalue: ($) => seq($.identifier, optional(seq('[', $.expression, ']'))),
         var_index: ($) => seq(field('identifier', $.identifier), '[', field('expression', $.expression), ']'),
         paren: ($) => seq('(', field('expression', $.expression), ')'),
+        unaly: ($) => seq(field('op', $.unalyOp), field('term', $.term)),
 
 
         // Expressions
@@ -57,7 +58,7 @@ module.exports = grammar({
         expression: ($) => seq(field('term', $.term), field('op_term', repeat($.op_term))),
         op_term: ($) => seq(field('op', $.op), field('term', $.term)),
         term: ($) => prec.left(1, choice(field('integer_constant', $.integerConstant), field('string_constant', $.stringConstant), field('keyword_constant', $.keywordConstant),
-            field('var_index', $.var_index), field('identifier', $.identifier), field('paren', $.paren), seq($.unalyOp, $.term), $.subroutineCall)),
+            field('var_index', $.var_index), field('identifier', $.identifier), field('paren', $.paren), field('unaly', $.unaly), $.subroutineCall)),
         subroutineCall: ($) => choice(seq($.identifier, '(', field("expressionList", optional($.expressionList)), ')'), seq($.identifier, '.', $.identifier, '(', field("expressionList", optional($.expressionList)), ')')),
         expressionList: ($) => seq($.expression, repeat(seq(',', $.expression))),
         op: ($) => choice('+', '-', '*', '/', '&', '|', '<', '>', '='),

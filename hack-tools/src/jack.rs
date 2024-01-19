@@ -224,6 +224,26 @@ fn write_term<W: std::fmt::Write>(
         let expression = paren.child_by_field_name("expression").unwrap();
 
         write_expression(&expression, code, symbol_table, out)?;
+    } else if let Some(unaly) = term.child_by_field_name("unaly") {
+        let op = unaly
+            .child_by_field_name("op")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
+
+        let term = unaly.child_by_field_name("term").unwrap();
+
+        write_term(&term, code, symbol_table, out)?;
+
+        match op {
+            "-" => {
+                writeln!(out, "neg")?;
+            }
+            "~" => {
+                writeln!(out, "not")?;
+            }
+            _ => unreachable!(),
+        }
     }
 
     // todo

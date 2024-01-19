@@ -718,6 +718,27 @@
         }
       ]
     },
+    "unaly": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "op",
+          "content": {
+            "type": "SYMBOL",
+            "name": "unalyOp"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "term",
+          "content": {
+            "type": "SYMBOL",
+            "name": "term"
+          }
+        }
+      ]
+    },
     "expression": {
       "type": "SEQ",
       "members": [
@@ -818,17 +839,12 @@
             }
           },
           {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "unalyOp"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "term"
-              }
-            ]
+            "type": "FIELD",
+            "name": "unaly",
+            "content": {
+              "type": "SYMBOL",
+              "name": "unaly"
+            }
           },
           {
             "type": "SYMBOL",
