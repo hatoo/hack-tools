@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Write};
+use std::collections::HashMap;
 
 use tree_sitter::{Node, Query, QueryCursor};
 
@@ -230,6 +230,33 @@ fn write_statement<W: std::fmt::Write>(
                 )?;
             }
 
+            writeln!(out, "label {}", label_end)?;
+        }
+        "whileStatement" => {
+            writeln!(out, "// whileStatement").unwrap();
+            let cond = statement.child_by_field_name("cond").unwrap();
+
+            let label_start = label();
+            let label_end = label();
+
+            writeln!(out, "label {}", label_start)?;
+            write_expression(&cond, class_name, code, &symbol_table, out)?;
+            writeln!(out, "not")?;
+            writeln!(out, "if-goto {}", label_end)?;
+
+            for statement in statement.children_by_field_name("statement", &mut statement.walk()) {
+                write_statement(
+                    &statement,
+                    class_name,
+                    function_name,
+                    code,
+                    symbol_table,
+                    label_counter,
+                    out,
+                )?;
+            }
+
+            writeln!(out, "goto {}", label_start)?;
             writeln!(out, "label {}", label_end)?;
         }
         _ => {}
