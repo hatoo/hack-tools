@@ -39,7 +39,7 @@ module.exports = grammar({
         // Statements
 
         statement: ($) => choice($.letStatement, $.ifStatement, $.whileStatement, $.doStatement, $.returnStatement),
-        letStatement: ($) => seq('let', $.lvalue, '=', field('expression', $.expression), ';'),
+        letStatement: ($) => seq('let', field('lvalue', $.lvalue), '=', field('expression', $.expression), ';'),
         ifStatement: ($) => seq('if', '(', $.expression, ')', '{', repeat($.statement), '}', optional(seq('else', '{', repeat($.statement), '}'))),
         whileStatement: ($) => seq('while', '(', $.expression, ')', '{', repeat($.statement), '}'),
         doStatement: ($) => seq('do', $.subroutineCall, ';'),
@@ -47,7 +47,7 @@ module.exports = grammar({
 
         // misc
 
-        lvalue: ($) => seq($.identifier, optional(seq('[', $.expression, ']'))),
+        lvalue: ($) => seq(field('identifier', $.identifier), optional(seq('[', field('expression', $.expression), ']'))),
         var_index: ($) => seq(field('identifier', $.identifier), '[', field('expression', $.expression), ']'),
         paren: ($) => seq('(', field('expression', $.expression), ')'),
         unaly: ($) => seq(field('op', $.unalyOp), field('term', $.term)),

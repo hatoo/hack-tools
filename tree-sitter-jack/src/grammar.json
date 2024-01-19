@@ -467,8 +467,12 @@
           "value": "let"
         },
         {
-          "type": "SYMBOL",
-          "name": "lvalue"
+          "type": "FIELD",
+          "name": "lvalue",
+          "content": {
+            "type": "SYMBOL",
+            "name": "lvalue"
+          }
         },
         {
           "type": "STRING",
@@ -638,8 +642,12 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "identifier"
+          "type": "FIELD",
+          "name": "identifier",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
         },
         {
           "type": "CHOICE",
@@ -652,8 +660,12 @@
                   "value": "["
                 },
                 {
-                  "type": "SYMBOL",
-                  "name": "expression"
+                  "type": "FIELD",
+                  "name": "expression",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "expression"
+                  }
                 },
                 {
                   "type": "STRING",

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write};
 
 use tree_sitter::{Node, Query, QueryCursor};
 
@@ -130,9 +130,49 @@ pub fn jack_to_vm(code: &str) -> String {
 
             match statement.kind() {
                 "letStatement" => {
-                    let expression = statement.child_by_field_name("expression").unwrap();
-                    write_expression(&expression, class_name, code, &symbol_table, &mut out)
+                    writeln!(out, "// letStatement").unwrap();
+                    let lvalue = statement.child_by_field_name("lvalue").unwrap();
+
+                    let l_identifier = lvalue
+                        .child_by_field_name("identifier")
+                        .unwrap()
+                        .utf8_text(code.as_bytes())
                         .unwrap();
+                    let expression = statement.child_by_field_name("expression").unwrap();
+
+                    if let Some(index_expression) = lvalue.child_by_field_name("expression") {
+                        writeln!(
+                            &mut out,
+                            "push {}",
+                            symbol_table.lookup(l_identifier).unwrap()
+                        )
+                        .unwrap();
+                        write_expression(
+                            &index_expression,
+                            class_name,
+                            code,
+                            &symbol_table,
+                            &mut out,
+                        )
+                        .unwrap();
+                        writeln!(&mut out, "add").unwrap();
+                        write_expression(&expression, class_name, code, &symbol_table, &mut out)
+                            .unwrap();
+
+                        writeln!(out, "pop temp 0").unwrap();
+                        writeln!(out, "pop pointer 1").unwrap();
+                        writeln!(out, "push temp 0").unwrap();
+                        writeln!(out, "pop that 0").unwrap();
+                    } else {
+                        write_expression(&expression, class_name, code, &symbol_table, &mut out)
+                            .unwrap();
+                        writeln!(
+                            &mut out,
+                            "pop {}",
+                            symbol_table.lookup(l_identifier).unwrap()
+                        )
+                        .unwrap();
+                    }
                 }
                 _ => {}
             }
