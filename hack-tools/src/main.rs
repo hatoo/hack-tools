@@ -9,6 +9,7 @@ use std::{
 use vm::vm_to_asm;
 
 mod asm;
+mod jack;
 mod jack_analyzer;
 mod vm;
 
@@ -31,6 +32,7 @@ enum Subcommands {
     JackAnalyzer {
         inputs: Vec<PathBuf>,
     },
+    Jack {},
 }
 
 fn main() {
@@ -146,6 +148,11 @@ fn main() {
                     .unwrap();
                 }
             }
+        }
+        Subcommands::Jack {} => {
+            let mut code = String::new();
+            std::io::stdin().read_to_string(&mut code).unwrap();
+            print!("{}", jack::jack_to_vm(&code));
         }
     }
 }

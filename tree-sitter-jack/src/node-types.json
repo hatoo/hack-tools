@@ -2,43 +2,77 @@
   {
     "type": "class",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "classVarDec",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "subroutineDec",
-          "named": true
-        }
-      ]
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "subroutine_dec": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "subroutineDec",
+            "named": true
+          }
+        ]
+      },
+      "var_dec": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "classVarDec",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
     "type": "classVarDec",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "type",
-          "named": true
-        }
-      ]
+    "fields": {
+      "identifier": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "modifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "field",
+            "named": false
+          },
+          {
+            "type": "static",
+            "named": false
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -139,22 +173,45 @@
     "fields": {}
   },
   {
+    "type": "parameter",
+    "named": true,
+    "fields": {
+      "identifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "parameterList",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "type",
-          "named": true
-        }
-      ]
+    "fields": {
+      "parameter": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "parameter",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -272,25 +329,66 @@
   {
     "type": "subroutineDec",
     "named": true,
-    "fields": {},
+    "fields": {
+      "modifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "constructor",
+            "named": false
+          },
+          {
+            "type": "function",
+            "named": false
+          },
+          {
+            "type": "method",
+            "named": false
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "parameter_list": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "parameterList",
+            "named": true
+          }
+        ]
+      },
+      "return_type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": false
+          }
+        ]
+      }
+    },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
         {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "parameterList",
-          "named": true
-        },
-        {
           "type": "subroutineBody",
-          "named": true
-        },
-        {
-          "type": "type",
           "named": true
         }
       ]
