@@ -259,6 +259,21 @@ fn write_statement<W: std::fmt::Write>(
             writeln!(out, "goto {}", label_start)?;
             writeln!(out, "label {}", label_end)?;
         }
+        "doStatement" => {
+            writeln!(out, "// doStatement").unwrap();
+            let subroutine_call = statement.child_by_field_name("subroutine_call").unwrap();
+            write_subroutine_call(&subroutine_call, class_name, code, symbol_table, out)?;
+            writeln!(out, "pop temp 0")?;
+        }
+        "returnStatement" => {
+            writeln!(out, "// returnStatement").unwrap();
+            if let Some(expression) = statement.child_by_field_name("expression") {
+                write_expression(&expression, class_name, code, symbol_table, out)?;
+            } else {
+                writeln!(out, "push constant 0")?;
+            }
+            writeln!(out, "return")?;
+        }
         _ => {}
     }
     Ok(())

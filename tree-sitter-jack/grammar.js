@@ -42,8 +42,8 @@ module.exports = grammar({
         letStatement: ($) => seq('let', field('lvalue', $.lvalue), '=', field('expression', $.expression), ';'),
         ifStatement: ($) => seq('if', '(', field('cond', $.expression), ')', '{', field('statement', repeat($.statement)), '}', optional(seq('else', '{', field('else_statement', repeat($.statement)), '}'))),
         whileStatement: ($) => seq('while', '(', field('cond', $.expression), ')', '{', field('statement', repeat($.statement)), '}'),
-        doStatement: ($) => seq('do', $.subroutineCall, ';'),
-        returnStatement: ($) => seq('return', optional($.expression), ';'),
+        doStatement: ($) => seq('do', field('subroutine_call', $.subroutineCall), ';'),
+        returnStatement: ($) => seq('return', field('expression', optional($.expression)), ';'),
 
         // misc
 

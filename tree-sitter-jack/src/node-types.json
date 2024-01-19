@@ -78,16 +78,17 @@
   {
     "type": "doStatement",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "subroutineCall",
-          "named": true
-        }
-      ]
+    "fields": {
+      "subroutine_call": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "subroutineCall",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -317,16 +318,17 @@
   {
     "type": "returnStatement",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        }
-      ]
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {

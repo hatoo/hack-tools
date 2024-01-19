@@ -624,8 +624,12 @@
           "value": "do"
         },
         {
-          "type": "SYMBOL",
-          "name": "subroutineCall"
+          "type": "FIELD",
+          "name": "subroutine_call",
+          "content": {
+            "type": "SYMBOL",
+            "name": "subroutineCall"
+          }
         },
         {
           "type": "STRING",
@@ -641,16 +645,20 @@
           "value": "return"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "expression"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "FIELD",
+          "name": "expression",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
         },
         {
           "type": "STRING",
