@@ -87,6 +87,11 @@ pub fn jack_to_vm(code: &str) -> String {
     }
 
     for subrountine_dec in class.children_by_field_name("subroutine_dec", &mut class.walk()) {
+        let name = subrountine_dec
+            .child_by_field_name("name")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
         let mut argument_vars = HashMap::new();
         if let Some(parameter_list) = subrountine_dec.child_by_field_name("parameter_list") {
             for parameter in
@@ -125,61 +130,111 @@ pub fn jack_to_vm(code: &str) -> String {
             local_vars: &local_vars,
         };
 
+        let mut label_counter = 0;
+
         for statement in body.children_by_field_name("statement", &mut body.walk()) {
-            let statement = statement.child(0).unwrap();
-
-            match statement.kind() {
-                "letStatement" => {
-                    writeln!(out, "// letStatement").unwrap();
-                    let lvalue = statement.child_by_field_name("lvalue").unwrap();
-
-                    let l_identifier = lvalue
-                        .child_by_field_name("identifier")
-                        .unwrap()
-                        .utf8_text(code.as_bytes())
-                        .unwrap();
-                    let expression = statement.child_by_field_name("expression").unwrap();
-
-                    if let Some(index_expression) = lvalue.child_by_field_name("expression") {
-                        writeln!(
-                            &mut out,
-                            "push {}",
-                            symbol_table.lookup(l_identifier).unwrap()
-                        )
-                        .unwrap();
-                        write_expression(
-                            &index_expression,
-                            class_name,
-                            code,
-                            &symbol_table,
-                            &mut out,
-                        )
-                        .unwrap();
-                        writeln!(&mut out, "add").unwrap();
-                        write_expression(&expression, class_name, code, &symbol_table, &mut out)
-                            .unwrap();
-
-                        writeln!(out, "pop temp 0").unwrap();
-                        writeln!(out, "pop pointer 1").unwrap();
-                        writeln!(out, "push temp 0").unwrap();
-                        writeln!(out, "pop that 0").unwrap();
-                    } else {
-                        write_expression(&expression, class_name, code, &symbol_table, &mut out)
-                            .unwrap();
-                        writeln!(
-                            &mut out,
-                            "pop {}",
-                            symbol_table.lookup(l_identifier).unwrap()
-                        )
-                        .unwrap();
-                    }
-                }
-                _ => {}
-            }
+            write_statement(
+                &statement,
+                class_name,
+                name,
+                code,
+                &symbol_table,
+                &mut label_counter,
+                &mut out,
+            )
+            .unwrap();
         }
     }
 
     out
+}
+
+fn write_statement<W: std::fmt::Write>(
+    statement: &Node,
+    class_name: &str,
+    function_name: &str,
+    code: &str,
+    symbol_table: &SymbolTable,
+    label_counter: &mut usize,
+    out: &mut W,
+) -> Result<(), std::fmt::Error> {
+    let statement = statement.child(0).unwrap();
+
+    let mut label = || {
+        *label_counter += 1;
+        format!("{}.{}_{}", class_name, function_name, label_counter)
+    };
+
+    match statement.kind() {
+        "letStatement" => {
+            writeln!(out, "// letStatement").unwrap();
+            let lvalue = statement.child_by_field_name("lvalue").unwrap();
+
+            let l_identifier = lvalue
+                .child_by_field_name("identifier")
+                .unwrap()
+                .utf8_text(code.as_bytes())
+                .unwrap();
+            let expression = statement.child_by_field_name("expression").unwrap();
+
+            if let Some(index_expression) = lvalue.child_by_field_name("expression") {
+                writeln!(out, "push {}", symbol_table.lookup(l_identifier).unwrap())?;
+                write_expression(&index_expression, class_name, code, &symbol_table, out).unwrap();
+                writeln!(out, "add")?;
+                write_expression(&expression, class_name, code, &symbol_table, out)?;
+
+                writeln!(out, "pop temp 0")?;
+                writeln!(out, "pop pointer 1")?;
+                writeln!(out, "push temp 0")?;
+                writeln!(out, "pop that 0")?;
+            } else {
+                write_expression(&expression, class_name, code, &symbol_table, out)?;
+                writeln!(out, "pop {}", symbol_table.lookup(l_identifier).unwrap())?;
+            }
+        }
+        "ifStatement" => {
+            writeln!(out, "// ifStatement").unwrap();
+            let cond = statement.child_by_field_name("cond").unwrap();
+            write_expression(&cond, class_name, code, &symbol_table, out)?;
+
+            let label_true = label();
+            let label_end = label();
+            writeln!(out, "if-goto {}", label_true)?;
+
+            for else_statement in
+                statement.children_by_field_name("else_statement", &mut statement.walk())
+            {
+                write_statement(
+                    &else_statement,
+                    class_name,
+                    function_name,
+                    code,
+                    symbol_table,
+                    label_counter,
+                    out,
+                )?;
+            }
+
+            writeln!(out, "goto {}", label_end)?;
+            writeln!(out, "label {}", label_true)?;
+
+            for statement in statement.children_by_field_name("statement", &mut statement.walk()) {
+                write_statement(
+                    &statement,
+                    class_name,
+                    function_name,
+                    code,
+                    symbol_table,
+                    label_counter,
+                    out,
+                )?;
+            }
+
+            writeln!(out, "label {}", label_end)?;
+        }
+        _ => {}
+    }
+    Ok(())
 }
 
 fn write_expression<W: std::fmt::Write>(
