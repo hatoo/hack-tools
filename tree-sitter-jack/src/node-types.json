@@ -119,16 +119,17 @@
   {
     "type": "expressionList",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        }
-      ]
+    "fields": {
+      "expression": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -386,7 +387,17 @@
     "type": "subroutineCall",
     "named": true,
     "fields": {
-      "expressionList": {
+      "dot_identifier": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "expression_list": {
         "multiple": false,
         "required": false,
         "types": [
@@ -395,17 +406,17 @@
             "named": true
           }
         ]
+      },
+      "identifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
       }
-    },
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -530,6 +541,16 @@
           }
         ]
       },
+      "subroutine_call": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "subroutineCall",
+            "named": true
+          }
+        ]
+      },
       "unaly": {
         "multiple": false,
         "required": false,
@@ -550,16 +571,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "subroutineCall",
-          "named": true
-        }
-      ]
     }
   },
   {

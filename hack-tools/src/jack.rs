@@ -131,7 +131,8 @@ pub fn jack_to_vm(code: &str) -> String {
             match statement.kind() {
                 "letStatement" => {
                     let expression = statement.child_by_field_name("expression").unwrap();
-                    write_expression(&expression, code, &symbol_table, &mut out).unwrap();
+                    write_expression(&expression, class_name, code, &symbol_table, &mut out)
+                        .unwrap();
                 }
                 _ => {}
             }
@@ -143,6 +144,7 @@ pub fn jack_to_vm(code: &str) -> String {
 
 fn write_expression<W: std::fmt::Write>(
     expression: &Node,
+    class_name: &str,
     code: &str,
     symbol_table: &SymbolTable,
     out: &mut W,
@@ -151,13 +153,14 @@ fn write_expression<W: std::fmt::Write>(
 
     let term = expression.child_by_field_name("term").unwrap();
 
-    write_term(&term, code, symbol_table, out)?;
+    write_term(&term, class_name, code, symbol_table, out)?;
 
     Ok(())
 }
 
 fn write_term<W: std::fmt::Write>(
     term: &Node,
+    class_name: &str,
     code: &str,
     symbol_table: &SymbolTable,
     out: &mut W,
@@ -218,12 +221,12 @@ fn write_term<W: std::fmt::Write>(
         let index = var_index.child_by_field_name("expression").unwrap();
 
         writeln!(out, "push {}", symbol_table.lookup(var_name).unwrap())?;
-        write_expression(&index, code, symbol_table, out)?;
+        write_expression(&index, class_name, code, symbol_table, out)?;
         writeln!(out, "add")?;
     } else if let Some(paren) = term.child_by_field_name("paren") {
         let expression = paren.child_by_field_name("expression").unwrap();
 
-        write_expression(&expression, code, symbol_table, out)?;
+        write_expression(&expression, class_name, code, symbol_table, out)?;
     } else if let Some(unaly) = term.child_by_field_name("unaly") {
         let op = unaly
             .child_by_field_name("op")
@@ -233,7 +236,7 @@ fn write_term<W: std::fmt::Write>(
 
         let term = unaly.child_by_field_name("term").unwrap();
 
-        write_term(&term, code, symbol_table, out)?;
+        write_term(&term, class_name, code, symbol_table, out)?;
 
         match op {
             "-" => {
@@ -244,9 +247,57 @@ fn write_term<W: std::fmt::Write>(
             }
             _ => unreachable!(),
         }
+    } else if let Some(subroutine_call) = term.child_by_field_name("subroutine_call") {
+        write_subroutine_call(&subroutine_call, class_name, code, symbol_table, out)?;
+    } else {
+        unimplemented!()
     }
 
-    // todo
+    Ok(())
+}
+
+fn write_subroutine_call<W: std::fmt::Write>(
+    scall: &Node,
+    class_name: &str,
+    code: &str,
+    symbol_table: &SymbolTable,
+    out: &mut W,
+) -> Result<(), std::fmt::Error> {
+    debug_assert_eq!(scall.kind(), "subroutineCall");
+
+    let mut arity = 0;
+    let callee = if let Some(dot_identifier) = scall.child_by_field_name("dot_identifier") {
+        format!(
+            "{}.{}",
+            scall
+                .child_by_field_name("identifier")
+                .unwrap()
+                .utf8_text(code.as_bytes())
+                .unwrap(),
+            dot_identifier.utf8_text(code.as_bytes()).unwrap()
+        )
+    } else {
+        writeln!(out, "pointer 0")?;
+        arity += 1;
+        format!(
+            "{}.{}",
+            class_name,
+            scall
+                .child_by_field_name("identifier")
+                .unwrap()
+                .utf8_text(code.as_bytes())
+                .unwrap()
+        )
+    };
+
+    if let Some(expression_list) = scall.child_by_field_name("expression_list") {
+        for expression in expression_list.children_by_field_name("expression", &mut scall.walk()) {
+            write_expression(&expression, class_name, code, symbol_table, out)?;
+            arity += 1;
+        }
+    }
+
+    writeln!(out, "call {} {}", callee, arity)?;
 
     Ok(())
 }
