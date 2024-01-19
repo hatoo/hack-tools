@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write};
 
 use tree_sitter::{Node, Query, QueryCursor};
 
@@ -22,6 +22,22 @@ impl<'a> SymbolTable<'a> {
         }
         if let Some((_, index)) = self.static_vars.get(name) {
             return Some(format!("static {}", index));
+        }
+        None
+    }
+
+    fn lookup_type(&self, name: &str) -> Option<String> {
+        if let Some((ty, _)) = self.local_vars.get(name) {
+            return Some(ty.clone());
+        }
+        if let Some((ty, _)) = self.argument_vars.get(name) {
+            return Some(ty.clone());
+        }
+        if let Some((ty, _)) = self.field_vars.get(name) {
+            return Some(ty.clone());
+        }
+        if let Some((ty, _)) = self.static_vars.get(name) {
+            return Some(ty.clone());
         }
         None
     }
@@ -92,6 +108,11 @@ pub fn jack_to_vm(code: &str) -> String {
             .unwrap()
             .utf8_text(code.as_bytes())
             .unwrap();
+        let modifier = subrountine_dec
+            .child_by_field_name("modifier")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
         let mut argument_vars = HashMap::new();
         if let Some(parameter_list) = subrountine_dec.child_by_field_name("parameter_list") {
             for parameter in
@@ -129,6 +150,45 @@ pub fn jack_to_vm(code: &str) -> String {
             argument_vars: &argument_vars,
             local_vars: &local_vars,
         };
+
+        match modifier {
+            "constructor" => {
+                writeln!(
+                    &mut out,
+                    "function {}.{} {}",
+                    class_name,
+                    name,
+                    local_vars.len()
+                )
+                .unwrap();
+                writeln!(&mut out, "push constant {}", field_vars.len()).unwrap();
+                writeln!(&mut out, "call Memory.alloc 1").unwrap();
+                writeln!(&mut out, "pop pointer 0").unwrap();
+            }
+            "function" => {
+                writeln!(
+                    &mut out,
+                    "function {}.{} {}",
+                    class_name,
+                    name,
+                    local_vars.len()
+                )
+                .unwrap();
+            }
+            "method" => {
+                writeln!(
+                    &mut out,
+                    "function {}.{} {}",
+                    class_name,
+                    name,
+                    local_vars.len()
+                )
+                .unwrap();
+                writeln!(&mut out, "push argument 0").unwrap();
+                writeln!(&mut out, "pop pointer 0").unwrap();
+            }
+            _ => unimplemented!(),
+        }
 
         let mut label_counter = 0;
 
@@ -274,7 +334,9 @@ fn write_statement<W: std::fmt::Write>(
             }
             writeln!(out, "return")?;
         }
-        _ => {}
+        _ => {
+            unimplemented!()
+        }
     }
     Ok(())
 }
@@ -291,6 +353,49 @@ fn write_expression<W: std::fmt::Write>(
     let term = expression.child_by_field_name("term").unwrap();
 
     write_term(&term, class_name, code, symbol_table, out)?;
+
+    for op_term in expression.children_by_field_name("op_term", &mut expression.walk()) {
+        let op = op_term
+            .child_by_field_name("op")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
+
+        let term = op_term.child_by_field_name("term").unwrap();
+
+        write_term(&term, class_name, code, symbol_table, out)?;
+
+        match op {
+            "+" => {
+                writeln!(out, "add")?;
+            }
+            "-" => {
+                writeln!(out, "sub")?;
+            }
+            "*" => {
+                writeln!(out, "call Math.multiply 2")?;
+            }
+            "/" => {
+                writeln!(out, "call Math.divide 2")?;
+            }
+            "&" => {
+                writeln!(out, "and")?;
+            }
+            "|" => {
+                writeln!(out, "or")?;
+            }
+            "<" => {
+                writeln!(out, "lt")?;
+            }
+            ">" => {
+                writeln!(out, "gt")?;
+            }
+            "=" => {
+                writeln!(out, "eq")?;
+            }
+            _ => unreachable!(),
+        }
+    }
 
     Ok(())
 }
@@ -314,10 +419,10 @@ fn write_term<W: std::fmt::Write>(
         writeln!(out, "push constant {}", value)?;
     } else if let Some(sconst) = term.child_by_field_name("string_constant") {
         let value = sconst
-            .child_by_field_name("value")
-            .unwrap()
             .utf8_text(code.as_bytes())
-            .unwrap();
+            .unwrap()
+            .trim_start_matches('"')
+            .trim_end_matches('"');
 
         let len = value.len();
 
@@ -360,6 +465,8 @@ fn write_term<W: std::fmt::Write>(
         writeln!(out, "push {}", symbol_table.lookup(var_name).unwrap())?;
         write_expression(&index, class_name, code, symbol_table, out)?;
         writeln!(out, "add")?;
+        writeln!(out, "pop pointer 1")?;
+        writeln!(out, "push that 0")?;
     } else if let Some(paren) = term.child_by_field_name("paren") {
         let expression = paren.child_by_field_name("expression").unwrap();
 
@@ -404,17 +511,29 @@ fn write_subroutine_call<W: std::fmt::Write>(
 
     let mut arity = 0;
     let callee = if let Some(dot_identifier) = scall.child_by_field_name("dot_identifier") {
-        format!(
-            "{}.{}",
-            scall
-                .child_by_field_name("identifier")
-                .unwrap()
-                .utf8_text(code.as_bytes())
-                .unwrap(),
-            dot_identifier.utf8_text(code.as_bytes()).unwrap()
-        )
+        let left = scall
+            .child_by_field_name("identifier")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
+
+        if left.chars().next().unwrap().is_uppercase() {
+            format!(
+                "{}.{}",
+                left,
+                dot_identifier.utf8_text(code.as_bytes()).unwrap()
+            )
+        } else {
+            writeln!(out, "push {}", symbol_table.lookup(left).unwrap())?;
+            arity += 1;
+            format!(
+                "{}.{}",
+                symbol_table.lookup_type(left).unwrap(),
+                dot_identifier.utf8_text(code.as_bytes()).unwrap()
+            )
+        }
     } else {
-        writeln!(out, "pointer 0")?;
+        writeln!(out, "push pointer 0")?;
         arity += 1;
         format!(
             "{}.{}",

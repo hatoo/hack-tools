@@ -32,7 +32,9 @@ enum Subcommands {
     JackAnalyzer {
         inputs: Vec<PathBuf>,
     },
-    Jack {},
+    Jack {
+        inputs: Vec<PathBuf>,
+    },
 }
 
 fn main() {
@@ -149,10 +151,50 @@ fn main() {
                 }
             }
         }
-        Subcommands::Jack {} => {
-            let mut code = String::new();
-            std::io::stdin().read_to_string(&mut code).unwrap();
-            print!("{}", jack::jack_to_vm(&code));
+        Subcommands::Jack { inputs } => {
+            if inputs.is_empty() {
+                let mut code = String::new();
+                std::io::stdin().read_to_string(&mut code).unwrap();
+                print!("{}", jack::jack_to_vm(&code));
+            } else if inputs.len() == 1 && inputs[0].is_dir() {
+                let path = inputs[0].clone();
+
+                for entry in fs::read_dir(path).unwrap() {
+                    let path = entry.unwrap().path();
+
+                    if path.is_file() && path.extension() == Some(OsStr::new("jack")) {
+                        let mut out = OpenOptions::new()
+                            .write(true)
+                            .create(true)
+                            .open(path.with_extension("vm"))
+                            .unwrap();
+
+                        write!(
+                            out,
+                            "{}",
+                            jack::jack_to_vm(&fs::read_to_string(&path).unwrap())
+                        )
+                        .unwrap();
+                    }
+                }
+            } else {
+                for path in inputs {
+                    assert!(path.is_file());
+
+                    let mut out = OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .open(path.with_extension("vm"))
+                        .unwrap();
+
+                    write!(
+                        out,
+                        "{}",
+                        jack::jack_to_vm(&fs::read_to_string(&path).unwrap())
+                    )
+                    .unwrap();
+                }
+            }
         }
     }
 }
