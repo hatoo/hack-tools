@@ -1,6 +1,31 @@
 use std::collections::HashMap;
 
-use tree_sitter::{Query, QueryCursor};
+use tree_sitter::{Node, Query, QueryCursor};
+
+struct SymbolTable<'a> {
+    static_vars: &'a HashMap<String, (String, usize)>,
+    field_vars: &'a HashMap<String, (String, usize)>,
+    argument_vars: &'a HashMap<String, (String, usize)>,
+    local_vars: &'a HashMap<String, (String, usize)>,
+}
+
+impl<'a> SymbolTable<'a> {
+    fn lookup(&self, name: &str) -> Option<String> {
+        if let Some((_, index)) = self.local_vars.get(name) {
+            return Some(format!("local {}", index));
+        }
+        if let Some((_, index)) = self.argument_vars.get(name) {
+            return Some(format!("argument {}", index));
+        }
+        if let Some((_, index)) = self.field_vars.get(name) {
+            return Some(format!("this {}", index));
+        }
+        if let Some((_, index)) = self.static_vars.get(name) {
+            return Some(format!("static {}", index));
+        }
+        None
+    }
+}
 
 pub fn jack_to_vm(code: &str) -> String {
     let mut parser = tree_sitter::Parser::new();
@@ -57,7 +82,7 @@ pub fn jack_to_vm(code: &str) -> String {
             let identifier = identifier.utf8_text(code.as_bytes()).unwrap();
 
             let len = vars.len();
-            vars.insert(identifier, (ty, len));
+            vars.insert(identifier.to_string(), (ty.to_string(), len));
         }
     }
 
@@ -74,7 +99,7 @@ pub fn jack_to_vm(code: &str) -> String {
                 let identifier = identifier.utf8_text(code.as_bytes()).unwrap();
 
                 let len = argument_vars.len();
-                argument_vars.insert(identifier, (ty, len));
+                argument_vars.insert(identifier.to_string(), (ty.to_string(), len));
             }
         }
 
@@ -89,10 +114,67 @@ pub fn jack_to_vm(code: &str) -> String {
                 let identifier = identifier.utf8_text(code.as_bytes()).unwrap();
 
                 let len = local_vars.len();
-                local_vars.insert(identifier, (ty, len));
+                local_vars.insert(identifier.to_string(), (ty.to_string(), len));
+            }
+        }
+
+        let symbol_table = SymbolTable {
+            static_vars: &static_vars,
+            field_vars: &field_vars,
+            argument_vars: &argument_vars,
+            local_vars: &local_vars,
+        };
+
+        for statement in body.children_by_field_name("statement", &mut body.walk()) {
+            let statement = statement.child(0).unwrap();
+
+            match statement.kind() {
+                "letStatement" => {
+                    let expression = statement.child_by_field_name("expression").unwrap();
+                    write_expression(&expression, code, &symbol_table, &mut out).unwrap();
+                }
+                _ => {}
             }
         }
     }
 
     out
+}
+
+fn write_expression<W: std::fmt::Write>(
+    expression: &Node,
+    code: &str,
+    symbol_table: &SymbolTable,
+    out: &mut W,
+) -> Result<(), std::fmt::Error> {
+    debug_assert_eq!(expression.kind(), "expression");
+
+    let term = expression.child_by_field_name("term").unwrap();
+
+    write_term(&term, code, symbol_table, out)?;
+
+    Ok(())
+}
+
+fn write_term<W: std::fmt::Write>(
+    term: &Node,
+    code: &str,
+    symbol_table: &SymbolTable,
+    out: &mut W,
+) -> Result<(), std::fmt::Error> {
+    debug_assert_eq!(term.kind(), "term");
+
+    if let Some(iconst) = term.child_by_field_name("integer_constant") {
+        let value = iconst
+            .utf8_text(code.as_bytes())
+            .unwrap()
+            .parse::<u16>()
+            .unwrap();
+
+        writeln!(out, "push constant {}", value)?;
+    }
+
+    // todo
+
+    Ok(())
 }

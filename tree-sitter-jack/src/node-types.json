@@ -93,20 +93,27 @@
   {
     "type": "expression",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "op",
-          "named": true
-        },
-        {
-          "type": "term",
-          "named": true
-        }
-      ]
+    "fields": {
+      "op_term": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "op_term",
+            "named": true
+          }
+        ]
+      },
+      "term": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "term",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -151,6 +158,32 @@
   {
     "type": "letStatement",
     "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "lvalue",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "lvalue",
+    "named": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -171,6 +204,32 @@
     "type": "op",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "op_term",
+    "named": true,
+    "fields": {
+      "op": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "op",
+            "named": true
+          }
+        ]
+      },
+      "term": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "term",
+            "named": true
+          }
+        ]
+      }
+    }
   },
   {
     "type": "parameter",
@@ -285,6 +344,16 @@
     "type": "subroutineBody",
     "named": true,
     "fields": {
+      "statement": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "statement",
+            "named": true
+          }
+        ]
+      },
       "var_dec": {
         "multiple": true,
         "required": false,
@@ -295,16 +364,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "statement",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -404,10 +463,21 @@
   {
     "type": "term",
     "named": true,
-    "fields": {},
+    "fields": {
+      "integer_constant": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "integerConstant",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "expression",
@@ -415,10 +485,6 @@
         },
         {
           "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "integerConstant",
           "named": true
         },
         {

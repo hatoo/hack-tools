@@ -30,7 +30,7 @@ module.exports = grammar({
         class: ($) => seq('class', field('name', $.identifier), '{', field('var_dec', repeat($.classVarDec)), field('subroutine_dec', repeat($.subroutineDec)), '}'),
         classVarDec: ($) => seq(field('modifier', choice('static', 'field')), field('type', $.type), field('identifier', $.identifier), repeat(seq(',', field('identifier', $.identifier))), ';'),
         type: ($) => choice('int', 'char', 'boolean', $.identifier),
-        subroutineBody: ($) => seq('{', field('var_dec', repeat($.varDec)), repeat($.statement), '}'),
+        subroutineBody: ($) => seq('{', field('var_dec', repeat($.varDec)), field('statement', repeat($.statement)), '}'),
         subroutineDec: ($) => seq(field('modifier', choice('constructor', 'function', 'method')), field('return_type', choice('void', $.type)), field('name', $.identifier), '(', field('parameter_list', optional($.parameterList)), ')', field('body', $.subroutineBody)),
         parameterList: ($) => seq(field('parameter', $.parameter), repeat(seq(',', field('parameter', $.parameter)))),
         parameter: ($) => seq(field('type', $.type), field('identifier', $.identifier)),
@@ -39,16 +39,21 @@ module.exports = grammar({
         // Statements
 
         statement: ($) => choice($.letStatement, $.ifStatement, $.whileStatement, $.doStatement, $.returnStatement),
-        letStatement: ($) => seq('let', $.identifier, optional(seq('[', $.expression, ']')), '=', $.expression, ';'),
+        letStatement: ($) => seq('let', $.lvalue, '=', field('expression', $.expression), ';'),
         ifStatement: ($) => seq('if', '(', $.expression, ')', '{', repeat($.statement), '}', optional(seq('else', '{', repeat($.statement), '}'))),
         whileStatement: ($) => seq('while', '(', $.expression, ')', '{', repeat($.statement), '}'),
         doStatement: ($) => seq('do', $.subroutineCall, ';'),
         returnStatement: ($) => seq('return', optional($.expression), ';'),
 
+        // misc
+
+        lvalue: ($) => seq($.identifier, optional(seq('[', $.expression, ']'))),
+
         // Expressions
 
-        expression: ($) => seq($.term, repeat(seq($.op, $.term))),
-        term: ($) => prec.left(1, choice($.integerConstant, $.stringConstant, $.keywordConstant, seq($.identifier, '[', $.expression, ']'), $.identifier, seq('(', $.expression, ')'), seq($.unalyOp, $.term), $.subroutineCall)),
+        expression: ($) => seq(field('term', $.term), field('op_term', repeat($.op_term))),
+        op_term: ($) => seq(field('op', $.op), field('term', $.term)),
+        term: ($) => prec.left(1, choice(field('integer_constant', $.integerConstant), $.stringConstant, $.keywordConstant, seq($.identifier, '[', $.expression, ']'), $.identifier, seq('(', $.expression, ')'), seq($.unalyOp, $.term), $.subroutineCall)),
         subroutineCall: ($) => choice(seq($.identifier, '(', field("expressionList", optional($.expressionList)), ')'), seq($.identifier, '.', $.identifier, '(', field("expressionList", optional($.expressionList)), ')')),
         expressionList: ($) => seq($.expression, repeat(seq(',', $.expression))),
         op: ($) => choice('+', '-', '*', '/', '&', '|', '<', '>', '='),
