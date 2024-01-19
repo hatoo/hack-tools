@@ -114,6 +114,9 @@ pub fn jack_to_vm(code: &str) -> String {
             .utf8_text(code.as_bytes())
             .unwrap();
         let mut argument_vars = HashMap::new();
+        if modifier == "method" {
+            argument_vars.insert("this".to_string(), ("this".to_string(), 0));
+        }
         if let Some(parameter_list) = subrountine_dec.child_by_field_name("parameter_list") {
             for parameter in
                 parameter_list.children_by_field_name("parameter", &mut parameter_list.walk())
