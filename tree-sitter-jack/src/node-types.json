@@ -274,6 +274,22 @@
     }
   },
   {
+    "type": "paren",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "returnStatement",
     "named": true,
     "fields": {},
@@ -464,12 +480,42 @@
     "type": "term",
     "named": true,
     "fields": {
+      "identifier": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
       "integer_constant": {
         "multiple": false,
         "required": false,
         "types": [
           {
             "type": "integerConstant",
+            "named": true
+          }
+        ]
+      },
+      "keyword_constant": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "keywordConstant",
+            "named": true
+          }
+        ]
+      },
+      "paren": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "paren",
             "named": true
           }
         ]
@@ -483,24 +529,22 @@
             "named": true
           }
         ]
+      },
+      "var_index": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "var_index",
+            "named": true
+          }
+        ]
       }
     },
     "children": {
       "multiple": true,
       "required": false,
       "types": [
-        {
-          "type": "expression",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "keywordConstant",
-          "named": true
-        },
         {
           "type": "subroutineCall",
           "named": true
@@ -556,6 +600,32 @@
         "types": [
           {
             "type": "type",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "var_index",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      },
+      "identifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
             "named": true
           }
         ]

@@ -204,6 +204,26 @@ fn write_term<W: std::fmt::Write>(
             }
             _ => unreachable!(),
         }
+    } else if let Some(identifier) = term.child_by_field_name("identifier") {
+        let ident = identifier.utf8_text(code.as_bytes()).unwrap();
+
+        writeln!(out, "push {}", symbol_table.lookup(ident).unwrap())?;
+    } else if let Some(var_index) = term.child_by_field_name("var_index") {
+        let var_name = var_index
+            .child_by_field_name("identifier")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
+
+        let index = var_index.child_by_field_name("expression").unwrap();
+
+        writeln!(out, "push {}", symbol_table.lookup(var_name).unwrap())?;
+        write_expression(&index, code, symbol_table, out)?;
+        writeln!(out, "add")?;
+    } else if let Some(paren) = term.child_by_field_name("paren") {
+        let expression = paren.child_by_field_name("expression").unwrap();
+
+        write_expression(&expression, code, symbol_table, out)?;
     }
 
     // todo
