@@ -284,17 +284,24 @@
   {
     "type": "subroutineBody",
     "named": true,
-    "fields": {},
+    "fields": {
+      "var_dec": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "varDec",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": false,
       "types": [
         {
           "type": "statement",
-          "named": true
-        },
-        {
-          "type": "varDec",
           "named": true
         }
       ]
@@ -330,6 +337,16 @@
     "type": "subroutineDec",
     "named": true,
     "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "subroutineBody",
+            "named": true
+          }
+        ]
+      },
       "modifier": {
         "multiple": false,
         "required": true,
@@ -382,16 +399,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "subroutineBody",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -460,20 +467,27 @@
   {
     "type": "varDec",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "type",
-          "named": true
-        }
-      ]
+    "fields": {
+      "identifier": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {

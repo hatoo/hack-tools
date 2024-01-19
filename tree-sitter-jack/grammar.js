@@ -30,11 +30,11 @@ module.exports = grammar({
         class: ($) => seq('class', field('name', $.identifier), '{', field('var_dec', repeat($.classVarDec)), field('subroutine_dec', repeat($.subroutineDec)), '}'),
         classVarDec: ($) => seq(field('modifier', choice('static', 'field')), field('type', $.type), field('identifier', $.identifier), repeat(seq(',', field('identifier', $.identifier))), ';'),
         type: ($) => choice('int', 'char', 'boolean', $.identifier),
-        subroutineBody: ($) => seq('{', repeat($.varDec), repeat($.statement), '}'),
-        subroutineDec: ($) => seq(field('modifier', choice('constructor', 'function', 'method')), field('return_type', choice('void', $.type)), field('name', $.identifier), '(', field('parameter_list', optional($.parameterList)), ')', $.subroutineBody),
+        subroutineBody: ($) => seq('{', field('var_dec', repeat($.varDec)), repeat($.statement), '}'),
+        subroutineDec: ($) => seq(field('modifier', choice('constructor', 'function', 'method')), field('return_type', choice('void', $.type)), field('name', $.identifier), '(', field('parameter_list', optional($.parameterList)), ')', field('body', $.subroutineBody)),
         parameterList: ($) => seq(field('parameter', $.parameter), repeat(seq(',', field('parameter', $.parameter)))),
         parameter: ($) => seq(field('type', $.type), field('identifier', $.identifier)),
-        varDec: ($) => seq('var', $.type, $.identifier, repeat(seq(',', $.identifier)), ';'),
+        varDec: ($) => seq('var', field('type', $.type), field('identifier', $.identifier), repeat(seq(',', field('identifier', $.identifier))), ';'),
 
         // Statements
 

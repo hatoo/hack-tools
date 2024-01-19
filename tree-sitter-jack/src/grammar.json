@@ -221,10 +221,14 @@
           "value": "{"
         },
         {
-          "type": "REPEAT",
+          "type": "FIELD",
+          "name": "var_dec",
           "content": {
-            "type": "SYMBOL",
-            "name": "varDec"
+            "type": "REPEAT",
+            "content": {
+              "type": "SYMBOL",
+              "name": "varDec"
+            }
           }
         },
         {
@@ -314,8 +318,12 @@
           "value": ")"
         },
         {
-          "type": "SYMBOL",
-          "name": "subroutineBody"
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "subroutineBody"
+          }
         }
       ]
     },
@@ -381,12 +389,20 @@
           "value": "var"
         },
         {
-          "type": "SYMBOL",
-          "name": "type"
+          "type": "FIELD",
+          "name": "type",
+          "content": {
+            "type": "SYMBOL",
+            "name": "type"
+          }
         },
         {
-          "type": "SYMBOL",
-          "name": "identifier"
+          "type": "FIELD",
+          "name": "identifier",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
         },
         {
           "type": "REPEAT",
@@ -398,8 +414,12 @@
                 "value": ","
               },
               {
-                "type": "SYMBOL",
-                "name": "identifier"
+                "type": "FIELD",
+                "name": "identifier",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "identifier"
+                }
               }
             ]
           }

@@ -57,12 +57,12 @@ pub fn jack_to_vm(code: &str) -> String {
             let identifier = identifier.utf8_text(code.as_bytes()).unwrap();
 
             let len = vars.len();
-            vars.insert(identifier.to_string(), (ty, len));
+            vars.insert(identifier, (ty, len));
         }
     }
 
     for subrountine_dec in class.children_by_field_name("subroutine_dec", &mut class.walk()) {
-        let mut local_vars = HashMap::new();
+        let mut argument_vars = HashMap::new();
         if let Some(parameter_list) = subrountine_dec.child_by_field_name("parameter_list") {
             for parameter in
                 parameter_list.children_by_field_name("parameter", &mut parameter_list.walk())
@@ -73,8 +73,23 @@ pub fn jack_to_vm(code: &str) -> String {
                 let identifier = parameter.child_by_field_name("identifier").unwrap();
                 let identifier = identifier.utf8_text(code.as_bytes()).unwrap();
 
+                let len = argument_vars.len();
+                argument_vars.insert(identifier, (ty, len));
+            }
+        }
+
+        let body = subrountine_dec.child_by_field_name("body").unwrap();
+
+        let mut local_vars = HashMap::new();
+        for var_dec in body.children_by_field_name("var_dec", &mut class.walk()) {
+            let ty = var_dec.child_by_field_name("type").unwrap();
+            let ty = ty.utf8_text(code.as_bytes()).unwrap();
+
+            for identifier in var_dec.children_by_field_name("identifier", &mut var_dec.walk()) {
+                let identifier = identifier.utf8_text(code.as_bytes()).unwrap();
+
                 let len = local_vars.len();
-                local_vars.insert(identifier.to_string(), (ty, len));
+                local_vars.insert(identifier, (ty, len));
             }
         }
     }
