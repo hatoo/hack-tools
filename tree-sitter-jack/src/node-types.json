@@ -473,6 +473,16 @@
             "named": true
           }
         ]
+      },
+      "string_constant": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "stringConstant",
+            "named": true
+          }
+        ]
       }
     },
     "children": {
@@ -489,10 +499,6 @@
         },
         {
           "type": "keywordConstant",
-          "named": true
-        },
-        {
-          "type": "stringConstant",
           "named": true
         },
         {

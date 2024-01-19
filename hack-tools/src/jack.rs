@@ -172,6 +172,38 @@ fn write_term<W: std::fmt::Write>(
             .unwrap();
 
         writeln!(out, "push constant {}", value)?;
+    } else if let Some(sconst) = term.child_by_field_name("string_constant") {
+        let value = sconst
+            .child_by_field_name("value")
+            .unwrap()
+            .utf8_text(code.as_bytes())
+            .unwrap();
+
+        let len = value.len();
+
+        writeln!(out, "push constant {}", len)?;
+        writeln!(out, "call String.new 1")?;
+
+        for c in value.chars() {
+            writeln!(out, "push constant {}", c as u16)?;
+            writeln!(out, "call String.appendChar 2")?;
+        }
+    } else if let Some(kconst) = term.child_by_field_name("keyword_constant") {
+        let value = kconst.utf8_text(code.as_bytes()).unwrap();
+
+        match value {
+            "true" => {
+                writeln!(out, "push constant 0")?;
+                writeln!(out, "not")?;
+            }
+            "false" | "null" => {
+                writeln!(out, "push constant 0")?;
+            }
+            "this" => {
+                writeln!(out, "push pointer 0")?;
+            }
+            _ => unreachable!(),
+        }
     }
 
     // todo
