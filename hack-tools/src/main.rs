@@ -121,6 +121,7 @@ fn main() {
                         let mut out = OpenOptions::new()
                             .write(true)
                             .create(true)
+                            .truncate(true)
                             .open(path.with_extension("xml"))
                             .unwrap();
 
@@ -139,6 +140,7 @@ fn main() {
                     let mut out = OpenOptions::new()
                         .write(true)
                         .create(true)
+                        .truncate(true)
                         .open(path.with_extension("xml"))
                         .unwrap();
 

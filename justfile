@@ -7,3 +7,9 @@ test-8:
     cargo run -- vm nand2tetris/projects/08/FunctionCalls/SimpleFunction/SimpleFunction.vm && sh ./nand2tetris/tools/CPUEmulator.sh nand2tetris/projects/08/FunctionCalls/SimpleFunction/SimpleFunction.tst
     cargo run -- vm nand2tetris/projects/08/FunctionCalls/FibonacciElement && sh ./nand2tetris/tools/CPUEmulator.sh nand2tetris/projects/08/FunctionCalls/FibonacciElement/FibonacciElement.tst
     cargo run -- vm nand2tetris/projects/08/FunctionCalls/StaticsTest && sh ./nand2tetris/tools/CPUEmulator.sh nand2tetris/projects/08/FunctionCalls/StaticsTest/StaticsTest.tst
+
+test-10:
+    rm -rf nand2tetris/projects/10-tmp/ || true
+    cp -r nand2tetris/projects/10/ nand2tetris/projects/10-tmp/
+    cargo run -- jack-analyzer nand2tetris/projects/10-tmp/ExpressionLessSquare
+    diff --strip-trailing-cr nand2tetris/projects/10-tmp/ExpressionLessSquare/Main.xml nand2tetris/projects/10/ExpressionLessSquare/Main.xml
