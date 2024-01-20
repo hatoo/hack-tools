@@ -19,3 +19,6 @@ test-10:
     diff --strip-trailing-cr nand2tetris/projects/10-tmp/Square/Main.xml nand2tetris/projects/10/Square/Main.xml
     diff --strip-trailing-cr nand2tetris/projects/10-tmp/Square/Square.xml nand2tetris/projects/10/Square/Square.xml
     diff --strip-trailing-cr nand2tetris/projects/10-tmp/Square/SquareGame.xml nand2tetris/projects/10/Square/SquareGame.xml
+
+test-11:
+    cargo run -- jack nand2tetris/projects/11/Seven

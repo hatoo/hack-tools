@@ -121,44 +121,10 @@ fn main() {
             if inputs.is_empty() {
                 let mut code = String::new();
                 std::io::stdin().read_to_string(&mut code).unwrap();
-                print!("{}", jack::jack_to_vm(&code));
-            } else if inputs.len() == 1 && inputs[0].is_dir() {
-                let path = inputs[0].clone();
-
-                for entry in fs::read_dir(path).unwrap() {
-                    let path = entry.unwrap().path();
-
-                    if path.is_file() && path.extension() == Some(OsStr::new("jack")) {
-                        let mut out = OpenOptions::new()
-                            .write(true)
-                            .create(true)
-                            .open(path.with_extension("vm"))
-                            .unwrap();
-
-                        write!(
-                            out,
-                            "{}",
-                            jack::jack_to_vm(&fs::read_to_string(&path).unwrap())
-                        )
-                        .unwrap();
-                    }
-                }
+                jack::jack_to_vm(&code, &mut std::io::stdout()).unwrap();
             } else {
-                for path in inputs {
-                    assert!(path.is_file());
-
-                    let mut out = OpenOptions::new()
-                        .write(true)
-                        .create(true)
-                        .open(path.with_extension("vm"))
-                        .unwrap();
-
-                    write!(
-                        out,
-                        "{}",
-                        jack::jack_to_vm(&fs::read_to_string(&path).unwrap())
-                    )
-                    .unwrap();
+                for (input, mut out) in files(inputs, "jack", "vm").unwrap() {
+                    jack::jack_to_vm(&input, &mut out).unwrap();
                 }
             }
         }

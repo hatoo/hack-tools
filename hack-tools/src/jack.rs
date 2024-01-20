@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Write};
+use std::collections::HashMap;
 
 use tree_sitter::{Node, Query, QueryCursor};
 
@@ -43,7 +43,7 @@ impl<'a> SymbolTable<'a> {
     }
 }
 
-pub fn jack_to_vm(code: &str) -> String {
+pub fn jack_to_vm<W: std::io::Write>(code: &str, out: &mut W) -> std::io::Result<()> {
     let mut parser = tree_sitter::Parser::new();
     parser.set_language(tree_sitter_jack::language()).unwrap();
 
@@ -68,8 +68,6 @@ pub fn jack_to_vm(code: &str) -> String {
     if has_error {
         std::process::exit(1);
     }
-
-    let mut out = String::new();
 
     let class = tree.root_node().child_by_field_name("class").unwrap();
 
@@ -156,39 +154,18 @@ pub fn jack_to_vm(code: &str) -> String {
 
         match modifier {
             "constructor" => {
-                writeln!(
-                    &mut out,
-                    "function {}.{} {}",
-                    class_name,
-                    name,
-                    local_vars.len()
-                )
-                .unwrap();
-                writeln!(&mut out, "push constant {}", field_vars.len()).unwrap();
-                writeln!(&mut out, "call Memory.alloc 1").unwrap();
-                writeln!(&mut out, "pop pointer 0").unwrap();
+                writeln!(out, "function {}.{} {}", class_name, name, local_vars.len())?;
+                writeln!(out, "push constant {}", field_vars.len())?;
+                writeln!(out, "call Memory.alloc 1")?;
+                writeln!(out, "pop pointer 0")?;
             }
             "function" => {
-                writeln!(
-                    &mut out,
-                    "function {}.{} {}",
-                    class_name,
-                    name,
-                    local_vars.len()
-                )
-                .unwrap();
+                writeln!(out, "function {}.{} {}", class_name, name, local_vars.len())?;
             }
             "method" => {
-                writeln!(
-                    &mut out,
-                    "function {}.{} {}",
-                    class_name,
-                    name,
-                    local_vars.len()
-                )
-                .unwrap();
-                writeln!(&mut out, "push argument 0").unwrap();
-                writeln!(&mut out, "pop pointer 0").unwrap();
+                writeln!(out, "function {}.{} {}", class_name, name, local_vars.len())?;
+                writeln!(out, "push argument 0")?;
+                writeln!(out, "pop pointer 0")?;
             }
             _ => unimplemented!(),
         }
@@ -203,16 +180,15 @@ pub fn jack_to_vm(code: &str) -> String {
                 code,
                 &symbol_table,
                 &mut label_counter,
-                &mut out,
-            )
-            .unwrap();
+                out,
+            )?;
         }
     }
 
-    out
+    Ok(())
 }
 
-fn write_statement<W: std::fmt::Write>(
+fn write_statement<W: std::io::Write>(
     statement: &Node,
     class_name: &str,
     function_name: &str,
@@ -220,7 +196,7 @@ fn write_statement<W: std::fmt::Write>(
     symbol_table: &SymbolTable,
     label_counter: &mut usize,
     out: &mut W,
-) -> Result<(), std::fmt::Error> {
+) -> Result<(), std::io::Error> {
     let statement = statement.child(0).unwrap();
 
     let mut label = || {
@@ -344,13 +320,13 @@ fn write_statement<W: std::fmt::Write>(
     Ok(())
 }
 
-fn write_expression<W: std::fmt::Write>(
+fn write_expression<W: std::io::Write>(
     expression: &Node,
     class_name: &str,
     code: &str,
     symbol_table: &SymbolTable,
     out: &mut W,
-) -> Result<(), std::fmt::Error> {
+) -> Result<(), std::io::Error> {
     debug_assert_eq!(expression.kind(), "expression");
 
     let term = expression.child_by_field_name("term").unwrap();
@@ -403,13 +379,13 @@ fn write_expression<W: std::fmt::Write>(
     Ok(())
 }
 
-fn write_term<W: std::fmt::Write>(
+fn write_term<W: std::io::Write>(
     term: &Node,
     class_name: &str,
     code: &str,
     symbol_table: &SymbolTable,
     out: &mut W,
-) -> Result<(), std::fmt::Error> {
+) -> Result<(), std::io::Error> {
     debug_assert_eq!(term.kind(), "term");
 
     if let Some(iconst) = term.child_by_field_name("integer_constant") {
@@ -503,13 +479,13 @@ fn write_term<W: std::fmt::Write>(
     Ok(())
 }
 
-fn write_subroutine_call<W: std::fmt::Write>(
+fn write_subroutine_call<W: std::io::Write>(
     scall: &Node,
     class_name: &str,
     code: &str,
     symbol_table: &SymbolTable,
     out: &mut W,
-) -> Result<(), std::fmt::Error> {
+) -> Result<(), std::io::Error> {
     debug_assert_eq!(scall.kind(), "subroutineCall");
 
     let mut arity = 0;
