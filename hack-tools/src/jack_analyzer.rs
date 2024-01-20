@@ -1,6 +1,6 @@
 use tree_sitter::{Node, Query, QueryCursor};
 
-pub fn syntax_analysis(code: &str) -> String {
+pub fn syntax_analysis<W: std::io::Write>(code: &str, out: &mut W) -> std::io::Result<()> {
     let mut parser = tree_sitter::Parser::new();
     parser.set_language(tree_sitter_jack::language()).unwrap();
 
@@ -26,25 +26,20 @@ pub fn syntax_analysis(code: &str) -> String {
         std::process::exit(1);
     }
 
-    let mut out = String::new();
-
     rec(
         tree.root_node().child_by_field_name("class").unwrap(),
         code,
         0,
-        &mut out,
+        out,
     )
-    .unwrap();
-
-    out
 }
 
-fn rec<W: std::fmt::Write>(
+fn rec<W: std::io::Write>(
     node: Node,
     code: &str,
     indent: usize,
     out: &mut W,
-) -> Result<(), std::fmt::Error> {
+) -> Result<(), std::io::Error> {
     let kind = node.kind();
     let space = " ".repeat(indent * 2);
 

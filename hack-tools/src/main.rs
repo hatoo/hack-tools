@@ -2,7 +2,7 @@ use asm::run_asm;
 use clap::Parser;
 use std::{
     ffi::OsStr,
-    fs::{self, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::{Read, Write},
     path::PathBuf,
 };
@@ -110,46 +110,10 @@ fn main() {
             if inputs.is_empty() {
                 let mut code = String::new();
                 std::io::stdin().read_to_string(&mut code).unwrap();
-                print!("{}", jack_analyzer::syntax_analysis(&code));
-            } else if inputs.len() == 1 && inputs[0].is_dir() {
-                let path = inputs[0].clone();
-
-                for entry in fs::read_dir(path).unwrap() {
-                    let path = entry.unwrap().path();
-
-                    if path.is_file() && path.extension() == Some(OsStr::new("jack")) {
-                        let mut out = OpenOptions::new()
-                            .write(true)
-                            .create(true)
-                            .truncate(true)
-                            .open(path.with_extension("xml"))
-                            .unwrap();
-
-                        write!(
-                            out,
-                            "{}",
-                            jack_analyzer::syntax_analysis(&fs::read_to_string(&path).unwrap())
-                        )
-                        .unwrap();
-                    }
-                }
+                jack_analyzer::syntax_analysis(&code, &mut std::io::stdout()).unwrap();
             } else {
-                for path in inputs {
-                    assert!(path.is_file());
-
-                    let mut out = OpenOptions::new()
-                        .write(true)
-                        .create(true)
-                        .truncate(true)
-                        .open(path.with_extension("xml"))
-                        .unwrap();
-
-                    write!(
-                        out,
-                        "{}",
-                        jack_analyzer::syntax_analysis(&fs::read_to_string(&path).unwrap())
-                    )
-                    .unwrap();
+                for (input, mut out) in files(inputs, "jack", "vm").unwrap() {
+                    jack_analyzer::syntax_analysis(&input, &mut out).unwrap();
                 }
             }
         }
@@ -199,4 +163,38 @@ fn main() {
             }
         }
     }
+}
+
+fn files(
+    inputs: Vec<PathBuf>,
+    in_extension: &str,
+    out_extension: &str,
+) -> std::io::Result<Vec<(String, File)>> {
+    let mut out = Vec::new();
+    let in_extension = OsStr::new(in_extension);
+
+    for path in inputs {
+        if path.is_dir() {
+            for entry in std::fs::read_dir(path)? {
+                let entry_path = entry?.path();
+
+                if entry_path.is_file() && entry_path.extension() == Some(in_extension) {
+                    let file = OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .truncate(true)
+                        .open(entry_path.with_extension(out_extension))?;
+                    out.push((std::fs::read_to_string(&entry_path)?, file))
+                }
+            }
+        } else {
+            let file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(&path.with_extension(out_extension))?;
+            out.push((std::fs::read_to_string(&path)?, file))
+        }
+    }
+    Ok(out)
 }
