@@ -222,10 +222,16 @@ fn rec<W: std::fmt::Write>(
             writeln!(out, "{space}<{kind}>")?;
             let mut walker = node.walk();
             if walker.goto_first_child() {
+                let mut prev: Option<Node> = None;
                 loop {
                     let node = walker.node();
                     if !node.is_extra() {
+                        if node.kind() == "}" && prev.map(|n| n.kind() == "{").unwrap_or(false) {
+                            writeln!(out, "{space}  <statements>")?;
+                            writeln!(out, "{space}  </statements>")?;
+                        }
                         rec(node, code, indent + 1, out)?;
+                        prev = Some(node);
                     }
                     if !walker.goto_next_sibling() {
                         break;
