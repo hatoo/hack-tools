@@ -13,3 +13,9 @@ test-10:
     cp -r nand2tetris/projects/10/ nand2tetris/projects/10-tmp/
     cargo run -- jack-analyzer nand2tetris/projects/10-tmp/ExpressionLessSquare
     diff --strip-trailing-cr nand2tetris/projects/10-tmp/ExpressionLessSquare/Main.xml nand2tetris/projects/10/ExpressionLessSquare/Main.xml
+    cargo run -- jack-analyzer nand2tetris/projects/10-tmp/ArrayTest
+    diff --strip-trailing-cr nand2tetris/projects/10-tmp/ArrayTest/Main.xml nand2tetris/projects/10/ArrayTest/Main.xml
+    cargo run -- jack-analyzer nand2tetris/projects/10-tmp/Square
+    diff --strip-trailing-cr nand2tetris/projects/10-tmp/Square/Main.xml nand2tetris/projects/10/Square/Main.xml
+    diff --strip-trailing-cr nand2tetris/projects/10-tmp/Square/Square.xml nand2tetris/projects/10/Square/Square.xml
+    diff --strip-trailing-cr nand2tetris/projects/10-tmp/Square/SquareGame.xml nand2tetris/projects/10/Square/SquareGame.xml
