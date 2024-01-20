@@ -26,18 +26,18 @@ impl<'a> SymbolTable<'a> {
         None
     }
 
-    fn lookup_type(&self, name: &str) -> Option<String> {
+    fn lookup_type(&self, name: &str) -> Option<&str> {
         if let Some((ty, _)) = self.local_vars.get(name) {
-            return Some(ty.clone());
+            return Some(ty);
         }
         if let Some((ty, _)) = self.argument_vars.get(name) {
-            return Some(ty.clone());
+            return Some(ty);
         }
         if let Some((ty, _)) = self.field_vars.get(name) {
-            return Some(ty.clone());
+            return Some(ty);
         }
         if let Some((ty, _)) = self.static_vars.get(name) {
-            return Some(ty.clone());
+            return Some(ty);
         }
         None
     }
