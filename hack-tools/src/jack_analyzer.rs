@@ -92,21 +92,8 @@ fn rec<W: std::io::Write>(
                 html_escape::encode_text(node.utf8_text(code.as_bytes()).unwrap())
             )?;
         }
-        "type" if node.is_named() => {
-            let mut walker = node.walk();
-            if walker.goto_first_child() {
-                loop {
-                    let node = walker.node();
-                    if !node.is_extra() {
-                        rec(node, code, indent, out)?;
-                    }
-                    if !walker.goto_next_sibling() {
-                        break;
-                    }
-                }
-            }
-        }
         "op" | "unalyOp" | "parameter" | "op_term" | "lvalue" | "var_index" | "paren" | "unaly"
+        | "type"
             if node.is_named() =>
         {
             let mut walker = node.walk();
@@ -192,27 +179,6 @@ fn rec<W: std::io::Write>(
             }
             writeln!(out, "{space}</{kind}>")?;
         }
-        /*
-        "expression" if node.is_named() => {
-            writeln!(out, "{space}<{kind}>", kind = node.kind())?;
-            let mut walker = node.walk();
-            if walker.goto_first_child() {
-                if walker.node().kind() == "term" {
-                    walker.goto_first_child();
-                }
-                loop {
-                    let node = walker.node();
-                    if !node.is_extra() {
-                        rec(node, code, indent + 1, out)?;
-                    }
-                    if !walker.goto_next_sibling() {
-                        break;
-                    }
-                }
-            }
-            writeln!(out, "{space}</{kind}>", kind = node.kind())?;
-        }
-        */
         _ => {
             writeln!(out, "{space}<{kind}>")?;
             let mut walker = node.walk();
